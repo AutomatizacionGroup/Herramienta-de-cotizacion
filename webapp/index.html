@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Levantamiento Control4</title>
+    <!-- Fuente moderna -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo">
+            <i class="ri-home-wifi-line"></i>
+            <h1>C4 Levantamiento</h1>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <button id="btn-reiniciar" class="btn-ghost" style="color:var(--text-muted); border: 1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;">
+                <i class="ri-refresh-line"></i> Reiniciar
+            </button>
+            <button id="btn-exportar" class="btn-primary">
+                <i class="ri-file-excel-2-line"></i> Exportar
+            </button>
+        </div>
+    </header>
+
+    <main class="app-content">
+        <!-- Lista de Habitaciones (se llena dinámicamente) -->
+        <div id="zonas-container" class="zonas-grid">
+            <!-- Ejemplo de tarjeta de zona
+            <div class="zona-card">...</div>
+            -->
+        </div>
+    </main>
+
+    <!-- Botón Flotante para Agregar Habitación -->
+    <button id="btn-add-zona" class="fab-btn">
+        <i class="ri-add-line"></i>
+    </button>
+
+    <!-- Modal para Nombre de la Nueva Zona -->
+    <div id="modal-zona" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h2>Añadir Nueva Habitación/Zona</h2>
+            <input type="text" id="input-zona-nombre" placeholder="Ej. Habitación Principal..." autocomplete="off">
+            <div class="modal-actions">
+                <button id="btn-cancelar-zona" class="btn-ghost">Cancelar</button>
+                <button id="btn-guardar-zona" class="btn-primary">Añadir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SheetJS (Para exportar Excel) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
