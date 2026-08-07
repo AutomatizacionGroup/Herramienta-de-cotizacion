@@ -38,11 +38,15 @@ h3 { font-size: 0.85rem; font-weight: 600; color: var(--text-main); text-transfo
 .zona-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
 .btn-delete-zona { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
 
-.equipos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
-.equipo-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.equipo-img { width: 60px; height: 60px; object-fit: cover; margin-bottom: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); }
-.equipo-nombre { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
-.equipo-desc { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+.equipos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.equipo-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+.equipo-img { width: 120px; height: 120px; object-fit: contain; margin-bottom: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: white; padding: 0.5rem; }
+.equipo-nombre { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+.equipo-pn { font-size: 0.75rem; color: var(--primary); font-family: monospace; font-weight: 700; margin-bottom: 0.4rem; background: rgba(14, 165, 233, 0.1); padding: 0.1rem 0.4rem; border-radius: 4px;}
+.equipo-desc { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem; flex-grow: 1; }
+
+.equipo-specs-icon { position: absolute; top: 0.5rem; right: 0.5rem; color: var(--text-muted); cursor: help; font-size: 1.2rem; }
+.equipo-specs-icon:hover { color: var(--primary); }
 
 .counter-controls { display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 0.2rem; }
 .btn-round { width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; cursor: pointer;}

@@ -1,26 +1,3 @@
-const TODOS_EQUIPOS = [
-    // LUX
-    { id: 'kds', nombre: 'KDS', desc: 'Keypad Dimmer', img: 'keypad.png', linea: 'LUX', tipo: 'Keypad' },
-    { id: 'sw', nombre: 'SW', desc: 'Switch', img: 'switch.png', linea: 'LUX', tipo: 'Switch' },
-    { id: 'ckd', nombre: 'CKD', desc: 'Keypad Config.', img: 'keypad.png', linea: 'LUX', tipo: 'Keypad' },
-    { id: 'kds_dual', nombre: 'KD/S Dual', desc: 'Keypad/Switch', img: 'keypad.png', linea: 'LUX', tipo: 'Keypad' },
-    { id: 'udm', nombre: 'UDM', desc: 'Univ. Dimmer', img: 'switch.png', linea: 'LUX', tipo: 'Dimmer' },
-    { id: 'dm_motion', nombre: 'DM/S/Mot', desc: 'Dim/Sw/Mot', img: 'sensor.png', linea: 'LUX', tipo: 'Sensor' },
-    { id: 'auxk', nombre: 'AUXK', desc: 'Aux Keypad', img: 'keypad.png', linea: 'LUX', tipo: 'Keypad' },
-    { id: 'mecanico', nombre: 'Mecánico', desc: 'Sw Mecánico', img: 'switch.png', linea: 'LUX', tipo: 'Switch' },
-    { id: 'fp1', nombre: 'FP1', desc: '1-Gang', img: 'faceplate.png', linea: 'LUX', tipo: 'Faceplate' },
-    { id: 'fp2', nombre: 'FP2', desc: '2-Gang', img: 'faceplate.png', linea: 'LUX', tipo: 'Faceplate' },
-    { id: 'fp3', nombre: 'FP3', desc: '3-Gang', img: 'faceplate.png', linea: 'LUX', tipo: 'Faceplate' },
-    { id: 'fp4', nombre: 'FP4', desc: '4-Gang', img: 'faceplate.png', linea: 'LUX', tipo: 'Faceplate' },
-    
-    // TRADICIONAL
-    { id: 't_kds', nombre: 'T-KDS', desc: 'Keypad Dimmer', img: 'keypad.png', linea: 'Tradicional', tipo: 'Keypad' },
-    { id: 't_sw', nombre: 'T-SW', desc: 'Switch', img: 'switch.png', linea: 'Tradicional', tipo: 'Switch' },
-    { id: 't_ckd', nombre: 'T-CKD', desc: 'Keypad Config.', img: 'keypad.png', linea: 'Tradicional', tipo: 'Keypad' },
-    { id: 't_ess_fwd', nombre: 'T-ESS FWD', desc: 'Essential Forward', img: 'switch.png', linea: 'Essential', tipo: 'Dimmer' },
-    { id: 't_auxk', nombre: 'T-AUXK', desc: 'Aux Keypad', img: 'keypad.png', linea: 'Tradicional', tipo: 'Keypad' }
-];
-
 let zonas = [];
 
 function guardarDatos() {
@@ -96,36 +73,33 @@ function agregarCajaFisica(zonaId) {
     document.getElementById('input-caja-nombre').focus();
 }
 
+function guardarCajaFisica() {
+    const nombre = document.getElementById('input-caja-nombre').value.trim();
+    if (nombre && zonaActualParaCaja) {
+        const zIndex = zonas.findIndex(z => z.id === zonaActualParaCaja);
+        if (zIndex !== -1) {
+            zonas[zIndex].cajas.push({
+                id: 'caja_' + Date.now(),
+                nombre: nombre,
+                equipoBase: '',
+                cargas: [''],
+                cargasDimer: ['No dimerizable'],
+                cargasCantidad: [1],
+                cargasTipo: ['Sin definir']
+            });
+            guardarDatos();
+            renderizarZonas();
+        }
+        document.getElementById('modal-caja').classList.add('hidden');
+    }
+}
+
 document.getElementById('btn-cancelar-caja').addEventListener('click', () => {
     document.getElementById('modal-caja').classList.add('hidden');
     zonaActualParaCaja = null;
 });
 
-document.getElementById('btn-guardar-caja').addEventListener('click', () => {
-    const nombreCaja = document.getElementById('input-caja-nombre').value.trim();
-    if (!nombreCaja) {
-        alert("Debes ingresar la ubicación de la caja para continuar.");
-        return;
-    }
-    
-    const zona = zonas.find(z => z.id === zonaActualParaCaja);
-    if(zona) {
-        zona.cajas.push({
-            id: 'caja_' + Date.now(),
-            nombre: nombreCaja,
-            gangs: '1 Gang',
-            neutro: true,
-            cableado: 'Simple',
-            retornos: 1,
-            cargas: [''],
-            cargasDimer: ['No dimerizable']
-        });
-        renderizarZonas();
-    }
-    
-    document.getElementById('modal-caja').classList.add('hidden');
-    zonaActualParaCaja = null;
-});
+document.getElementById('btn-guardar-caja').addEventListener('click', guardarCajaFisica);
 
 function eliminarCajaFisica(zonaId, cajaId) {
     const zona = zonas.find(z => z.id === zonaId);
@@ -177,23 +151,34 @@ function actualizarCajaTexto(zonaId, cajaId, campo, valor) {
 }
 
 function actualizarRetornos(zonaId, cajaId, valor) {
-    const zona = zonas.find(z => z.id === zonaId);
-    if (zona) {
-        const caja = zona.cajas.find(c => c.id === cajaId);
-        if(caja) {
+    const zIndex = zonas.findIndex(z => z.id === zonaId);
+    if (zIndex !== -1) {
+        const cIndex = zonas[zIndex].cajas.findIndex(c => c.id === cajaId);
+        if (cIndex !== -1) {
+            const caja = zonas[zIndex].cajas[cIndex];
             let nuevosRetornos = parseInt(valor) || 1;
             caja.retornos = nuevosRetornos;
             
-            if(!caja.cargasDimer) caja.cargasDimer = []; // Fix for backwards compatibility
-
+            // Ajustar arrays de cargas
+            if(!caja.cargas) caja.cargas = [];
+            if(!caja.cargasDimer) caja.cargasDimer = [];
+            if(!caja.cargasCantidad) caja.cargasCantidad = [];
+            if(!caja.cargasTipo) caja.cargasTipo = [];
+            
             while(caja.cargas.length < nuevosRetornos) {
                 caja.cargas.push('');
                 caja.cargasDimer.push('No dimerizable');
+                caja.cargasCantidad.push(1);
+                caja.cargasTipo.push('Sin definir');
             }
             if(caja.cargas.length > nuevosRetornos) {
                 caja.cargas = caja.cargas.slice(0, nuevosRetornos);
                 caja.cargasDimer = caja.cargasDimer.slice(0, nuevosRetornos);
+                caja.cargasCantidad = caja.cargasCantidad.slice(0, nuevosRetornos);
+                caja.cargasTipo = caja.cargasTipo.slice(0, nuevosRetornos);
             }
+            
+            guardarDatos();
             renderizarZonas();
         }
     }
@@ -232,6 +217,39 @@ function actualizarDimerIndividual(zonaId, cajaId, index, valor) {
     }
 }
 
+function actualizarCargaDimer(zonaId, cajaId, idx, valor) {
+    const zona = zonas.find(z => z.id === zonaId);
+    if(zona) {
+        const caja = zona.cajas.find(c => c.id === cajaId);
+        if(caja && caja.cargasDimer) {
+            caja.cargasDimer[idx] = valor;
+            guardarDatos();
+        }
+    }
+}
+
+function actualizarCargaCantidad(zonaId, cajaId, idx, valor) {
+    const zona = zonas.find(z => z.id === zonaId);
+    if(zona) {
+        const caja = zona.cajas.find(c => c.id === cajaId);
+        if(caja && caja.cargasCantidad) {
+            caja.cargasCantidad[idx] = parseInt(valor) || 1;
+            guardarDatos();
+        }
+    }
+}
+
+function actualizarCargaTipo(zonaId, cajaId, idx, valor) {
+    const zona = zonas.find(z => z.id === zonaId);
+    if(zona) {
+        const caja = zona.cajas.find(c => c.id === cajaId);
+        if(caja && caja.cargasTipo) {
+            caja.cargasTipo[idx] = valor;
+            guardarDatos();
+        }
+    }
+}
+
 function actualizarCampoTexto(zonaId, campo, valor) {
     const zona = zonas.find(z => z.id === zonaId);
     if (zona) {
@@ -263,8 +281,9 @@ window.filtrarEquipos = function(zonaId) {
         const desc = card.getAttribute('data-desc');
         const linea = card.getAttribute('data-linea');
         const tipo = card.getAttribute('data-tipo');
+        const pn = card.getAttribute('data-pn') || "";
 
-        const matchSearch = nombre.includes(searchVal) || desc.includes(searchVal);
+        const matchSearch = nombre.includes(searchVal) || desc.includes(searchVal) || pn.includes(searchVal);
         const matchLinea = (lineaVal === 'ALL' || linea === lineaVal);
         const matchTipo = (tipoVal === 'ALL' || tipo === tipoVal);
 
@@ -360,7 +379,6 @@ function renderizarZonas() {
                     </div>
             `;
             
-            html += `<div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">`;
             caja.cargas.forEach((cargaValue, idx) => {
                 let currentDimer = (caja.cargasDimer && caja.cargasDimer[idx]) ? caja.cargasDimer[idx] : 'No dimerizable';
                 const standardLoads = ['Sin definir', 'Spots / Empotrados', 'Cinta LED', 'Lámpara Colgante', 'Lámpara de Pared', 'Lámpara de Mesa/Pie', 'Exterior / Jardín', 'Ventilador', 'Extractor', 'Persianas / Cortinas', 'Tomacorriente Controlado', ''];
@@ -368,9 +386,9 @@ function renderizarZonas() {
                 let selectValue = isCustom ? 'Otro' : (cargaValue || 'Sin definir');
 
                 html += `
-                    <div class="input-group" style="margin-bottom: 0.5rem; display:flex; gap:0.5rem; align-items:flex-end; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:140px;">
-                            <label style="color:var(--primary);">Tipo de Carga ${idx + 1}</label>
+                    <div style="margin-bottom: 0.8rem; display:flex; flex-direction:row; gap:0.8rem; align-items:flex-end; flex-wrap:wrap; background:rgba(0,0,0,0.2); padding:1rem; border-radius:8px; width:100%;">
+                        <div class="input-group" style="flex:2; min-width:180px; margin-bottom:0;">
+                            <label style="color:var(--primary);">Carga ${idx + 1}</label>
                             <select class="input-control" onchange="cambiarTipoCargaSelect('${zona.id}', '${caja.id}', ${idx}, this.value)">
                                 <option value="Sin definir" ${selectValue === 'Sin definir' ? 'selected' : ''}>-- Seleccionar --</option>
                                 <option value="Spots / Empotrados" ${selectValue === 'Spots / Empotrados' ? 'selected' : ''}>Spots / Empotrados</option>
@@ -387,7 +405,19 @@ function renderizarZonas() {
                             </select>
                             ${isCustom ? `<input type="text" class="input-control" style="margin-top:0.5rem;" value="${cargaValue === 'Otro' ? '' : cargaValue}" placeholder="Especificar carga..." onchange="actualizarCargaIndividual('${zona.id}', '${caja.id}', ${idx}, this.value)">` : ''}
                         </div>
-                        <div style="flex:1; min-width:140px;">
+                        <div class="input-group" style="width: 90px; margin-bottom:0;">
+                            <label style="color:var(--text-muted); font-size:0.75rem;">Cant. Luces</label>
+                            <input type="number" class="input-control" value="${(caja.cargasCantidad && caja.cargasCantidad[idx]) || 1}" min="1" max="100" onchange="actualizarCargaCantidad('${zona.id}', '${caja.id}', ${idx}, this.value)">
+                        </div>
+                        <div class="input-group" style="flex:1; min-width:140px; margin-bottom:0;">
+                            <label style="color:var(--text-muted); font-size:0.75rem;">Cableado/Tipo</label>
+                            <select class="input-control" onchange="actualizarCargaTipo('${zona.id}', '${caja.id}', ${idx}, this.value)">
+                                ${['Sin definir', 'Sencillo', 'Triway (3-Vías)', '4-Vías', 'Ventilador', 'Tira LED', 'Motor/Persiana', 'Tomacorriente', 'Bus'].map(t => 
+                                    `<option value="${t}" ${((caja.cargasTipo && caja.cargasTipo[idx]) || 'Sin definir') === t ? 'selected' : ''}>${t}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex:1; min-width:140px; margin-bottom:0;">
                             <label style="color:var(--text-muted); font-size:0.75rem;">Atenuación</label>
                             <select class="input-control" onchange="actualizarDimerIndividual('${zona.id}', '${caja.id}', ${idx}, this.value)">
                                 <option value="Dimerizable" ${currentDimer === 'Dimerizable' ? 'selected' : ''}>Dimerizable</option>
@@ -396,15 +426,26 @@ function renderizarZonas() {
                             </select>
                         </div>
                     </div>
-                `;
+            `;
             });
             html += `</div></div></div>`; 
         });
         
         html += `
-            <div class="input-group" style="margin-bottom: 1rem; margin-top:1rem;">
-                <label>Otros Requerimientos (Audio, Seguridad, Red)</label>
-                <input type="text" class="input-control" placeholder="Ej: Pantalla T4, Videoportero, Access Point" value="${zona.otros}" onchange="actualizarCampoTexto('${zona.id}', 'otros', this.value)">
+            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; margin-top:1rem;">
+                <div class="input-group" style="flex:1; min-width:250px;">
+                    <label>Otros Requerimientos (Audio, Seguridad, Red)</label>
+                    <input type="text" class="input-control" placeholder="Ej: Pantalla T4, Videoportero, Access Point" value="${zona.otros}" onchange="actualizarCampoTexto('${zona.id}', 'otros', this.value)">
+                </div>
+                <div class="input-group" style="flex:1; min-width:250px;">
+                    <label>Ventilación (Ej. para Baños)</label>
+                    <select class="input-control" onchange="actualizarCampoTexto('${zona.id}', 'ventilacion', this.value)">
+                        <option value="" ${!zona.ventilacion ? 'selected' : ''}>-- No aplica / Sin definir --</option>
+                        <option value="Corriente de aire (Natural)" ${zona.ventilacion === 'Corriente de aire (Natural)' ? 'selected' : ''}>Corriente de aire (Natural)</option>
+                        <option value="Extractor" ${zona.ventilacion === 'Extractor' ? 'selected' : ''}>Extractor</option>
+                        <option value="Sin ventilación" ${zona.ventilacion === 'Sin ventilación' ? 'selected' : ''}>Sin ventilación</option>
+                    </select>
+                </div>
             </div>
             
             <div class="accordion-header" onclick="toggleAccordion('equipos-${zona.id}')">
@@ -425,6 +466,8 @@ function renderizarZonas() {
                             <option value="Contemporary">Línea Contemporary</option>
                             <option value="Tradicional">Línea Tradicional</option>
                             <option value="Essential">Línea Essential</option>
+                            <option value="Faceplates">Faceplates (Tapas)</option>
+                            <option value="Sensores">Sensores</option>
                         </select>
                         <select class="input-control" id="filter-tipo-${zona.id}" onchange="filtrarEquipos('${zona.id}')" style="flex:1;">
                             <option value="ALL">Todos los Tipos</option>
@@ -441,14 +484,15 @@ function renderizarZonas() {
         
         TODOS_EQUIPOS.forEach(eq => {
             html += `
-                    <div class="equipo-item equipo-card-${zona.id}" data-nombre="${eq.nombre.toLowerCase()}" data-desc="${eq.desc.toLowerCase()}" data-linea="${eq.linea}" data-tipo="${eq.tipo}">
-                        <div class="equipo-badge badge-${eq.linea.toLowerCase()}">${eq.linea}</div>
+                    <div class="equipo-item equipo-card-${zona.id}" data-nombre="${eq.nombre.toLowerCase()}" data-desc="${eq.desc.toLowerCase()}" data-linea="${eq.linea}" data-tipo="${eq.tipo}" data-pn="${eq.partNumber.toLowerCase()}">
+                        <i class="ri-information-line equipo-specs-icon" title="${eq.specs}"></i>
                         <img src="${eq.img}" alt="${eq.nombre}" class="equipo-img">
                         <div class="equipo-nombre">${eq.nombre}</div>
+                        <div class="equipo-pn">${eq.partNumber}</div>
                         <div class="equipo-desc">${eq.desc}</div>
                         <div class="counter-controls">
                             <button class="btn-round" onclick="modificarCantidad('${zona.id}', '${eq.id}', -1)"><i class="ri-subtract-line"></i></button>
-                            <div class="count-val" id="${zona.id}-${eq.id}">${zona.equipos[eq.id] || 0}</div>
+                            <span class="count-val" id="${zona.id}-${eq.id}">${zona.equipos[eq.id] || 0}</span>
                             <button class="btn-round" onclick="modificarCantidad('${zona.id}', '${eq.id}', 1)"><i class="ri-add-line"></i></button>
                         </div>
                     </div>
@@ -479,21 +523,53 @@ function cargarDatos() {
     if (saved) {
         try {
             zonas = JSON.parse(saved);
-            // Asegurarnos de que las zonas antiguas tengan la estructura correcta si agregamos propiedades nuevas
             zonas.forEach(z => {
                 if(!z.cajas) z.cajas = [];
                 if(!z.equipos) z.equipos = {};
                 z.cajas.forEach(c => {
                     if(!c.cargas) c.cargas = [''];
                     if(!c.cargasDimer) c.cargasDimer = ['No dimerizable'];
+                    if(!c.cargasCantidad) {
+                        c.cargasCantidad = Array(c.cargas.length).fill(1);
+                    }
+                    if(!c.cargasTipo) {
+                        c.cargasTipo = Array(c.cargas.length).fill('Sin definir');
+                    }
                 });
             });
             renderizarZonas();
         } catch (e) {
-            console.error('Error al parsear datos de localStorage:', e);
             crearZona('Habitación Principal');
         }
     } else {
+        // Recuperar datos si vienen de la versión con proyectos
+        const proyectosSaved = localStorage.getItem('c4_cotizador_proyectos');
+        if (proyectosSaved) {
+            try {
+                const proys = JSON.parse(proyectosSaved);
+                if (proys && proys.length > 0) {
+                    zonas = proys[0].zonas;
+                    // Aplicar misma estructura a los datos migrados de proyectos
+                    zonas.forEach(z => {
+                        if(!z.cajas) z.cajas = [];
+                        if(!z.equipos) z.equipos = {};
+                        z.cajas.forEach(c => {
+                            if(!c.cargas) c.cargas = [''];
+                            if(!c.cargasDimer) c.cargasDimer = ['No dimerizable'];
+                            if(!c.cargasCantidad) {
+                                c.cargasCantidad = Array(c.cargas.length).fill(1);
+                            }
+                            if(!c.cargasTipo) {
+                                c.cargasTipo = Array(c.cargas.length).fill('Sin definir');
+                            }
+                        });
+                    });
+                    guardarDatos();
+                    renderizarZonas();
+                    return;
+                }
+            } catch(e) {}
+        }
         crearZona('Habitación Principal');
     }
 }
@@ -523,13 +599,16 @@ btnExportar.addEventListener('click', () => {
             let n = c.neutro ? "Con Neutro" : "Sin Neutro";
             let descCargas = c.cargas.map((carga, i) => {
                 let dimer = (c.cargasDimer && c.cargasDimer[i]) ? c.cargasDimer[i] : 'No dimerizable';
-                return `R${i+1}: ${carga || 'N/A'} (${dimer})`;
+                let cant = (c.cargasCantidad && c.cargasCantidad[i]) ? c.cargasCantidad[i] : 1;
+                let tipo = (c.cargasTipo && c.cargasTipo[i]) ? c.cargasTipo[i] : 'Sin definir';
+                return `R${i+1}: ${carga || 'N/A'} [${cant} luces, ${tipo}] (${dimer})`;
             }).join(" | ");
             return `Caja "${c.nombre}": [${c.gangs} | ${n} | ${c.cableado}] -> ${descCargas}`;
         }).join(" \\n\\n");
         
         let fila = {
             "Área / Zona": z.nombre,
+            "Ventilación": z.ventilacion || "N/A",
             "Total Cajas Físicas": z.cajas.length,
             "Detalle de Cajas": cajasDesc,
             "Otros Reqs": z.otros,
@@ -537,7 +616,7 @@ btnExportar.addEventListener('click', () => {
 
         // Generación dinámica de columnas
         equiposUsados.forEach(eq => {
-            let colName = `[${eq.linea}] ${eq.nombre}`;
+            let colName = `[${eq.linea}] ${eq.partNumber} - ${eq.nombre}`;
             fila[colName] = z.equipos[eq.id] > 0 ? z.equipos[eq.id] : '';
         });
 
@@ -550,7 +629,7 @@ btnExportar.addEventListener('click', () => {
     
     // Anchos de columna dinámicos
     const colWidths = [
-        {wch: 25}, {wch: 15}, {wch: 80}, {wch: 20} // Columnas base
+        {wch: 25}, {wch: 20}, {wch: 15}, {wch: 80}, {wch: 20} // Columnas base (Área, Ventilación, Total Cajas, Detalle, Otros Reqs)
     ];
     equiposUsados.forEach(() => colWidths.push({wch: 12})); // Columnas de equipos
     colWidths.push({wch: 40}); // Notas
