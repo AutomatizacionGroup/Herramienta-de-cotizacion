@@ -1,0 +1,33 @@
+{
+  "Contemporary": {
+    "C4-4SF120-C": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/Image/C4-4SF120-C-AU-1_uldiil.png",
+    "C4-APD120-C": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/Image/C4-APD120-C-AU-1_jxc9fh.png",
+    "C4-APD240-C": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/Image/C4-APD240-C-AU-1_l4xvfh.png"
+  },
+  "Tradicional": {
+    "C4-4SF120-AU": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-AU/4/C4-4SF120-AU",
+    "C4-4SF120-BI": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-BI/4/C4-4SF120-BI",
+    "C4-4SF120-BL": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-BL/4/C4-4SF120-BL",
+    "C4-4SF120-BR": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-BR/4/C4-4SF120-BR",
+    "C4-4SF120-IV": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-IV/4/C4-4SF120-IV",
+    "C4-4SF120-LA": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-LA/4/C4-4SF120-LA",
+    "C4-4SF120-MB": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-MB/4/C4-4SF120-MB",
+    "C4-4SF120-SW": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-SW/4/C4-4SF120-SW",
+    "C4-4SF120-WH": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-4SF120-WH/4/C4-4SF120-WH",
+    "C4-APD120-AU": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-AU/4/C4-APD120-AU",
+    "C4-APD120-BI": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-BI/4/C4-APD120-BI",
+    "C4-APD120-BL": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-BL/4/C4-APD120-BL",
+    "C4-APD120-BR": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-BR/4/C4-APD120-BR",
+    "C4-APD120-IV": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-IV/4/C4-APD120-IV",
+    "C4-APD120-LA": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-LA/4/C4-APD120-LA",
+    "C4-APD120-MB": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-MB/4/C4-APD120-MB",
+    "C4-APD120-SW": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-SW/4/C4-APD120-SW",
+    "C4-APD120-WH": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD120-WH/4/C4-APD120-WH",
+    "C4-APD240-AU": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD240-AU/4/C4-APD120-AU",
+    "C4-APD240-BI": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD240-BI/4/C4-APD120-BI",
+    "C4-APD240-BL": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD240-BL/4/C4-APD120-BL",
+    "C4-APD240-MB": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD240-MB/4/C4-APD120-MB",
+    "C4-APD240-SW": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD240-SW/4/C4-APD120-SW",
+    "C4-APD240-WH": "https://res.cloudinary.com/control4/image/upload/e_trim:1/c_fit,h_200,w_500,q_auto,f_auto,dpr_auto/C4-APD240-WH/4/C4-APD120-WH"
+  }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">C4 Levantamiento</string>
+    <string name="title_activity_main">C4 Levantamiento</string>
+    <string name="package_name">com.control4.levantamiento</string>
+    <string name="custom_url_scheme">com.control4.levantamiento</string>
+</resources>

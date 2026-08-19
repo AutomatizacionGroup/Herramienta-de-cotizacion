@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Levantamiento Control4</title>
+    <!-- Fuente moderna -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=6">
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            alert("Error in " + line + ":" + col + "\\n" + msg + "\\n" + (error ? error.stack : ""));
+        };
+        window.onunhandledrejection = function(event) {
+            alert("Unhandled Promise Rejection:\\n" + (event.reason ? (event.reason.stack || event.reason) : event));
+        };
+    </script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo">
+            <i class="ri-home-wifi-line"></i>
+            <h1>C4 Levantamiento</h1>
+        </div>
+        <div style="display:flex; gap:0.5rem;" id="header-editor-controls">
+            <button id="btn-volver-dashboard" class="btn-ghost" style="color:var(--text-muted); border: 1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;">
+                <i class="ri-arrow-left-line"></i> Mis Proyectos
+            </button>
+            <button id="btn-exportar" class="btn-primary">
+                <i class="ri-file-excel-2-line"></i> Exportar
+            </button>
+        </div>
+    </header>
+
+    <!-- Vista: Dashboard Multi-Proyecto -->
+    <main id="dashboard-view" class="app-content" style="display:flex; flex-direction:column; gap:2rem; padding-top:2rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap: 1rem; flex-wrap: wrap;">
+            <h2>Tus Proyectos de Levantamiento</h2>
+            <div style="display:flex; gap: 0.8rem;">
+                <button id="btn-crear-piloto" class="btn-ghost" style="color:var(--accent); border: 1px dashed var(--accent); padding: 0.5rem 1rem; border-radius: 8px; font-weight:600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;"><i class="ri-magic-line"></i> Cargar Proyecto Piloto</button>
+                <button id="btn-nuevo-proyecto" class="btn-primary"><i class="ri-add-line"></i> Nuevo Proyecto</button>
+            </div>
+        </div>
+        <div id="lista-proyectos" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+            <!-- Las tarjetas de proyecto se cargarán aquí -->
+        </div>
+    </main>
+
+    <!-- Vista: Editor Principal -->
+    <div id="main-editor-view" style="display:none;">
+    <main class="app-content">
+        <!-- Pestañas (Tabs) -->
+        <div class="tabs-container" style="display:flex; gap:1rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+            <button id="tab-lista" class="tab-btn active" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer; padding-bottom:0.5rem; border-bottom: 2px solid var(--primary-color);">📝 Vista de Lista</button>
+            <button id="tab-plano" class="tab-btn" style="background:none; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer; padding-bottom:0.5rem; border-bottom: 2px solid transparent;">🗺️ Vista de Plano (Beta)</button>
+        </div>
+
+        <!-- Vista: Lista de Habitaciones (Tradicional) -->
+        <div id="vista-lista">
+            <div id="zonas-container" class="zonas-grid">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Vista: Plano Visual (Drag & Drop) -->
+        <div id="vista-plano" class="hidden" style="display:none; height:calc(100vh - 180px); gap: 1rem;">
+            <!-- Catálogo Lateral Draggable -->
+            <div id="catalogo-lateral" style="width: 250px; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 1rem; overflow-y: auto; display:flex; flex-direction:column; gap:0.5rem;">
+                <h3 style="margin-top:0; font-size:1rem; color:var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:0.5rem;">Equipos Disponibles</h3>
+                <input type="text" id="search-plano-catalogo" class="input-control" placeholder="Buscar equipo..." oninput="filtrarCatalogoDraggable()" style="margin-bottom: 0.5rem;">
+                
+                <div id="draggable-items-container" style="display:flex; flex-direction:column; gap: 0.8rem; margin-bottom: 1rem;">
+                    <!-- Se llena en JS -->
+                </div>
+                
+                <div style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; display:flex; flex-direction:column; gap: 0.5rem;">
+                    <h3 style="margin:0; font-size:0.95rem; color:var(--text-muted);">Notas del Proyecto</h3>
+                    <textarea id="notas-plano-textarea" class="input-control" placeholder="Observaciones generales del proyecto..." style="height: 100px; resize: none; font-size: 0.85rem;" oninput="actualizarNotasPlano()"></textarea>
+                </div>
+            </div>
+
+            <!-- Canvas Central -->
+            <div id="lienzo-container" style="flex:1; position:relative; background: #1a1b26; border-radius: 12px; border: 2px dashed rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                
+                <!-- Selector de Piso / Plano (Múltiples Planos) -->
+                <div id="planos-selector-bar" style="position:absolute; top: 15px; left: 15px; right: 15px; background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 0.5rem 1rem; z-index: 1000; display: none; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; gap: 0.8rem; flex: 1;">
+                        <i class="ri-pages-line" style="color:var(--primary); font-size: 1.2rem;"></i>
+                        <span style="color:var(--text-muted); font-size: 0.85rem; font-weight: 500;">Piso / Vista Activa:</span>
+                        <select id="select-plano-activo" class="input-control" style="font-size:0.85rem; width: 220px; margin: 0; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); padding: 0.3rem 0.5rem;"></select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button id="btn-plano-add" class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem;" title="Subir plano para otro Piso/Área">
+                            <i class="ri-add-line"></i> Subir Nuevo Piso
+                        </button>
+                        <button id="btn-plano-rename" class="btn-ghost" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" title="Renombrar Piso">
+                            <i class="ri-edit-line"></i>
+                        </button>
+                        <button id="btn-plano-delete" class="btn-ghost" style="padding: 0.4rem 0.6rem; font-size: 0.8rem; color:var(--danger);" title="Eliminar Piso">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="upload-plano-prompt" style="text-align:center;">
+                    <i class="ri-file-pdf-line" style="font-size:3rem; color:var(--text-muted);"></i>
+                    <p style="color:var(--text-muted);">Sube o arrastra el plano arquitectónico aquí (PDF o Imagen)</p>
+                    <input type="file" id="input-plano-file" accept="image/*,application/pdf" style="display:none;">
+                    <button onclick="document.getElementById('input-plano-file').click()" class="btn-ghost" style="margin-top:0.5rem;">Cargar Archivo</button>
+                </div>
+                       <!-- Leyenda Flotante -->
+                <div id="plano-leyenda" style="position:absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0.8rem; z-index: 1000; width: 170px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: transform 0.3s; transform-origin: bottom right;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:0.5rem;">
+                        <h4 style="margin:0; font-size:0.75rem; color:#fff;">Simbología</h4>
+                        <button id="btn-toggle-leyenda" class="btn-ghost" style="padding:0; min-width:24px;"><i class="ri-add-line"></i></button>
+                    </div>
+                    <div id="leyenda-content" style="display:none; flex-direction:column; gap:0.6rem; margin-top:0.8rem;">
+                        <div style="font-size:0.65rem; color:var(--text-muted);">
+                            <strong>TIPO DE EQUIPO (Color)</strong>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:50%; background:#9333ea;"></span> Dimmer</div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:50%; background:#2563eb;"></span> Keypad</div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:50%; background:#059669;"></span> Switch</div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:50%; background:#ea580c;"></span> Aux/Sensor</div>
+                        </div>
+                        <div style="font-size:0.65rem; color:var(--text-muted); border-top:1px solid rgba(255,255,255,0.1); padding-top:0.6rem;">
+                            <strong>LÍNEA (Forma)</strong>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:50%; border:1px solid #fff; background:#1e293b;"></span> LUX</div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:0; border:1px solid #fff; background:#1e293b;"></span> Essential</div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:8px; height:8px; border-radius:1px; border:1px solid #fff; background:#1e293b; transform:rotate(45deg); margin-left:1px; margin-right:1px;"></span> Contemporary</div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;"><span style="display:block; flex-shrink:0; width:10px; height:10px; border-radius:3px; border:1px solid #fff; background:#1e293b;"></span> Tradicional</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles de Paginación PDF (Ocultos por defecto) -->
+                <div id="pdf-controls" style="display:none; position:absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 0.5rem 1rem; border-radius: 20px; z-index: 1000; align-items:center; gap: 1rem; border: 1px solid rgba(255,255,255,0.2);">
+                    <button id="btn-prev-page" class="btn-ghost" style="padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.2rem;"><i class="ri-arrow-left-s-line"></i><span class="hide-mobile">Ant</span></button>
+                    <span id="pdf-page-info" style="color:white; font-size: 0.9rem;">Pág 1 / 1</span>
+                    <button id="btn-next-page" class="btn-ghost" style="padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.2rem;"><span class="hide-mobile">Sig</span><i class="ri-arrow-right-s-line"></i></button>
+                    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2);"></div>
+                    <button id="btn-zoom-out" class="btn-ghost" style="padding: 0.2rem 0.5rem;" title="Alejar"><i class="ri-zoom-out-line"></i></button>
+                    <span id="pdf-zoom-info" style="color:white; font-size: 0.9rem;">100%</span>
+                    <button id="btn-zoom-in" class="btn-ghost" style="padding: 0.2rem 0.5rem;" title="Acercar"><i class="ri-zoom-in-line"></i></button>
+                    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2);"></div>
+                    <button id="btn-rotate-pdf" class="btn-ghost" style="padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.2rem;" title="Rotar PDF"><i class="ri-anticlockwise-2-line"></i><span class="hide-mobile">Rotar</span></button>
+                </div>
+
+                <!-- El plano cargado y la zona interactiva -->
+                <div id="plano-interactivo" style="display:none; position:relative; transform-origin: top left; width: 100%; height: 100%; overflow: auto;">
+                    <div id="zoom-container" style="position:relative; display:inline-block; transition: width 0.2s ease, transform 0.2s ease;">
+                        <img id="plano-imagen" src="" style="display:none; width:100%; height:auto; user-drag:none; -webkit-user-drag:none; pointer-events:none;">
+                        <canvas id="pdf-canvas" style="display:none; width:100%; height:auto; pointer-events:none;"></canvas>
+                        <div id="drop-zone" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
+                            <!-- Aquí caerán los pines (equipos) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Botón Flotante para Agregar Habitación -->
+    <button id="btn-add-zona" class="fab-btn">
+        <i class="ri-add-line"></i>
+    </button>
+    </div> <!-- Fin Main Editor View -->
+
+    <!-- Modal para Nombre de la Nueva Zona -->
+    <div id="modal-zona" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h2>Añadir Nueva Habitación/Zona</h2>
+            <input type="text" id="input-zona-nombre" placeholder="Ej. Habitación Principal..." autocomplete="off">
+            <div class="modal-actions">
+                <button id="btn-cancelar-zona" class="btn-ghost">Cancelar</button>
+                <button id="btn-guardar-zona" class="btn-primary">Añadir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nuevo Proyecto -->
+    <div id="modal-proyecto" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h2>Crear Nuevo Proyecto</h2>
+            <input type="text" id="input-proyecto-nombre" placeholder="Nombre del cliente u obra..." autocomplete="off">
+            <div class="modal-actions">
+                <button id="btn-cancelar-proyecto" class="btn-ghost">Cancelar</button>
+                <button id="btn-guardar-proyecto" class="btn-primary">Crear Proyecto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmación (Eliminar) -->
+    <div id="modal-confirm" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h2 id="confirm-title" style="color:var(--danger);">¿Eliminar Proyecto?</h2>
+            <p id="confirm-msg" style="color:var(--text-muted); margin-bottom:1.5rem; font-size:0.9rem;">Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="btn-cancelar-confirm" class="btn-ghost">Cancelar</button>
+                <button id="btn-aceptar-confirm" class="btn-primary" style="background:var(--danger); border-color:var(--danger);">Eliminar Definitivamente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast informativo para colocar pines -->
+    <div id="colocacion-toast" style="display:none; position:fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(195, 32, 50, 0.95); color: white; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: 600; font-size: 0.9rem; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items:center; gap: 0.5rem; border: 1px solid rgba(255,255,255,0.2);">
+        <i class="ri-map-pin-add-line" style="font-size: 1.2rem;"></i>
+        <span id="colocacion-toast-text">Modo Colocación: Haz clic en el plano para colocar el equipo</span>
+    </div>
+
+    <!-- Modal para Alertas del Sistema (Custom Alert) -->
+    <div id="modal-custom-alert" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+            <h2 id="custom-alert-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                <i class="ri-error-warning-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Aviso
+            </h2>
+            <p id="custom-alert-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
+            <div class="modal-actions" style="justify-content: center; gap: 0;">
+                <button id="btn-custom-alert-ok" class="btn-primary" style="padding: 0.6rem 2rem; border-radius: 8px;">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmaciones del Sistema (Custom Confirm) -->
+    <div id="modal-custom-confirm" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+            <h2 id="custom-confirm-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                <i class="ri-question-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Confirmación
+            </h2>
+            <p id="custom-confirm-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
+            <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
+                <button id="btn-custom-confirm-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
+                <button id="btn-custom-confirm-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Fusionar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Inputs/Prompts del Sistema (Custom Prompt) -->
+    <div id="modal-custom-prompt" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+            <h2 id="custom-prompt-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                <i class="ri-edit-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Entrada de Datos
+            </h2>
+            <p id="custom-prompt-message" style="color:var(--text-main); margin-bottom:1rem; font-size:0.95rem; line-height:1.4; text-align: left;"></p>
+            <input type="text" id="custom-prompt-input" class="input-control" style="margin-bottom:1.5rem; font-size:0.95rem; background:rgba(0,0,0,0.5); border:1px solid var(--border-color); color:white; padding: 0.6rem;" autocomplete="off">
+            <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
+                <button id="btn-custom-prompt-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
+                <button id="btn-custom-prompt-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SheetJS (Para exportar Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    
+    <!-- PDF.js para renderizar planos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        // Configurar el worker de PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+
+    <!-- Modal Gestión de Pin -->
+    <div id="modal-pin-config" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 350px;">
+            <h2 id="pin-config-title" style="margin-top:0; font-size:1.1rem; color:white;">Configurar Equipo</h2>
+            <p id="pin-config-subtitle" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">C4-XXX</p>
+            
+            <div id="container-pin-grupo-selector" class="input-group" style="margin-bottom: 1.2rem; display:none;">
+                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Dispositivo en esta Tapa</label>
+                <select id="select-pin-grupo-activo" class="input-control" style="font-size:0.85rem; border-color:var(--primary);"></select>
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 0.8rem;">
+                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Habitación / Zona <span style="color: var(--primary);">* Obligatorio</span></label>
+                <input type="text" id="input-pin-zona" class="input-control" placeholder="Ej. Cocina, Sala de Estar, Pasillo..." style="font-size:0.85rem;" autocomplete="off">
+            </div>
+
+            <div class="input-group" style="margin-bottom: 1.2rem;">
+                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Fusión de Tapa (Placa Compartida)</label>
+                <select id="select-pin-fusion" class="input-control" style="font-size:0.85rem;">
+                    <!-- Se llena dinámicamente en JS -->
+                </select>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 1.2rem;">
+                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Notas del Dispositivo</label>
+                <textarea id="input-pin-nota" class="input-control" placeholder="Ej. Altura 1.40m, controlador principal..." style="height: 70px; resize:none; font-size:0.85rem;"></textarea>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap: 1rem;">
+                <button id="btn-pin-lock" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; justify-content:center;">
+                    <i class="ri-lock-unlock-line"></i> Anclar / Bloquear
+                </button>
+                <button id="btn-pin-delete" class="btn-primary" style="background:rgba(239, 68, 68, 0.2); border:1px solid var(--danger); color:var(--danger); justify-content:center;">
+                    <i class="ri-delete-bin-line"></i> Eliminar Equipo
+                </button>
+            </div>
+
+            <div class="modal-actions" style="margin-top:1.5rem; justify-content:center;">
+                <button id="btn-pin-close" class="btn-ghost">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="capacitor.js"></script>
+    <script src="db.js?v=37"></script>
+    <script src="catalogo.js?v=37"></script>
+    <script src="app.js?v=37"></script>
+</body>
+</html>
