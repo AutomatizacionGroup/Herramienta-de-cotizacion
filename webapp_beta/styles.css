@@ -463,3 +463,10 @@ select option { color: #1a1b26 !important; background-color: #ffffff !important;
         min-width: 20px !important;
     }
 }
+
+/* Reglas para el Modo Pantalla Completa */
+#vista-plano:fullscreen {
+    height: 100vh !important;
+    padding: 1.5rem !important;
+    background-color: var(--bg-dark) !important;
+}

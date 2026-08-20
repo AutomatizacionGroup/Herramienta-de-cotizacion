@@ -2700,4 +2700,35 @@ function filtrarCatalogoDraggable() {
     });
 }
 
+// Lógica para alternar Pantalla Completa en el editor de planos
+const btnFullscreenLienzo = document.getElementById('btn-fullscreen-lienzo');
+if (btnFullscreenLienzo) {
+    btnFullscreenLienzo.addEventListener('click', () => {
+        const vistaPlano = document.getElementById('vista-plano');
+        if (!document.fullscreenElement) {
+            vistaPlano.requestFullscreen().then(() => {
+                btnFullscreenLienzo.innerHTML = '<i class="ri-fullscreen-exit-line"></i>';
+                btnFullscreenLienzo.title = "Salir de Pantalla Completa";
+            }).catch(err => {
+                alert(`Error al activar pantalla completa: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    });
+}
+
+document.addEventListener('fullscreenchange', () => {
+    const btnFullscreenLienzo = document.getElementById('btn-fullscreen-lienzo');
+    if (btnFullscreenLienzo) {
+        if (document.fullscreenElement) {
+            btnFullscreenLienzo.innerHTML = '<i class="ri-fullscreen-exit-line"></i>';
+            btnFullscreenLienzo.title = "Salir de Pantalla Completa";
+        } else {
+            btnFullscreenLienzo.innerHTML = '<i class="ri-fullscreen-line"></i>';
+            btnFullscreenLienzo.title = "Pantalla Completa";
+        }
+    }
+});
+
 } catch(e) { alert('Runtime Error: ' + e.message + ' ' + e.stack); }
