@@ -2106,13 +2106,24 @@ inputPlanoFile.addEventListener('change', async (e) => {
 
 function renderPDFPage(num) {
     pdfDoc.getPage(num).then(page => {
-        // Escalar el PDF dinámicamente para asegurar nitidez (lado más largo a ~3500px)
+        // Escalar el PDF dinámicamente y con soporte para pantallas de alta resolución (Retina / Móviles)
         const baseViewport = page.getViewport({ scale: 1.0 });
         const maxDim = Math.max(baseViewport.width, baseViewport.height);
         
-        let targetScale = 3500 / maxDim;
-        // Limitar la escala entre 1.5 (planos gigantes) y 5.0 (planos pequeños)
-        targetScale = Math.max(1.5, Math.min(5.0, targetScale));
+        // Obtener el factor de escala de píxeles del dispositivo (Retina/High-DPI)
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Apuntar a 2500px lógicos. En pantallas Retina 2x serán 5000px físicos de textura
+        let targetScale = (2500 * dpr) / maxDim;
+        // Limitar la escala base entre 1.5 (planos gigantes) y 6.0 (planos pequeños)
+        targetScale = Math.max(1.5, Math.min(6.0, targetScale));
+
+        // Para evitar crashes de memoria en móviles, limitamos la textura del canvas a max 5000px físicos
+        const tempViewport = page.getViewport({ scale: targetScale, rotation: pdfRotation });
+        const tempMax = Math.max(tempViewport.width, tempViewport.height);
+        if (tempMax > 5000) {
+            targetScale = targetScale * (5000 / tempMax);
+        }
 
         const viewport = page.getViewport({ scale: targetScale, rotation: pdfRotation });
         pdfCanvas.height = viewport.height;
