@@ -1302,7 +1302,10 @@ btnExportar.addEventListener('click', async () => {
         return;
     }
     
-    // Crear una copia temporal de las zo    // Sincronizar el plano activo actual
+    // Crear una copia temporal de las zonas para inyectar los equipos del plano
+    let zonasExportar = JSON.parse(JSON.stringify(zonas));
+    
+    // Sincronizar el plano activo actual
     actualizarPlanoActivoEnArray();
     
     // Recorrer todos los planos y agregarlos a zonasExportar agrupados por Ubicación/Habitación
