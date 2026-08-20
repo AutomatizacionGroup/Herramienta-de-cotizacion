@@ -1305,101 +1305,117 @@ btnExportar.addEventListener('click', async () => {
     // Crear una copia temporal de las zonas para inyectar los equipos del plano
     let zonasExportar = JSON.parse(JSON.stringify(zonas));
     
-    // Sincronizar el plano activo actual
-    actualizarPlanoActivoEnArray();
-    
-    // Recorrer todos los planos y agregarlos a zonasExportar
-    planos.forEach(plano => {
+    // Sincronizar el plano activo actual    planos.forEach(plano => {
         if (plano.pinesPlano && plano.pinesPlano.length > 0) {
-            const notasPlanoVal = document.getElementById('notas-plano-textarea') ? document.getElementById('notas-plano-textarea').value : '';
-
-            // Recopilar notas por equipo/pin
-            let notasEquiposArr = [];
+            // Agrupar los pines de este plano por el número de página del PDF
+            let pinesPorPagina = {};
             plano.pinesPlano.forEach(pin => {
-                if (pin.config && pin.config.nota && pin.config.nota.trim() !== '') {
-                    const info = pin.equipoInfo || TODOS_EQUIPOS.find(eq => eq.id === pin.equipoId);
-                    const eqNombre = info ? info.nombre : 'Equipo';
-                    const pn = info ? info.partNumber : '';
-                    
-                    // Identificador de fusion/tapa
-                    let placaStr = 'Placa Individual';
-                    if (pin.config.fusion) {
-                        const numPlaca = pin.config.fusion.replace('tapa_', '');
-                        placaStr = `Placa Fusionada #${numPlaca}`;
+                const pag = pin.pagina || 1;
+                if (!pinesPorPagina[pag]) {
+                    pinesPorPagina[pag] = [];
+                }
+                pinesPorPagina[pag].push(pin);
+            });
+
+            const paginasConPines = Object.keys(pinesPorPagina);
+            const totalPaginasConPines = paginasConPines.length;
+
+            paginasConPines.forEach(pagKey => {
+                const pagNum = parseInt(pagKey);
+                const pinesDeEstaPagina = pinesPorPagina[pagKey];
+                const sufijoPag = totalPaginasConPines > 1 ? ` - Pág ${pagNum}` : '';
+                
+                const notasPlanoVal = document.getElementById('notas-plano-textarea') ? document.getElementById('notas-plano-textarea').value : '';
+
+                // Recopilar notas por equipo/pin para esta página específica
+                let notasEquiposArr = [];
+                pinesDeEstaPagina.forEach(pin => {
+                    if (pin.config && pin.config.nota && pin.config.nota.trim() !== '') {
+                        const info = pin.equipoInfo || TODOS_EQUIPOS.find(eq => eq.id === pin.equipoId);
+                        const eqNombre = info ? info.nombre : 'Equipo';
+                        const pn = info ? info.partNumber : '';
+                        
+                        // Identificador de fusion/tapa
+                        let placaStr = 'Placa Individual';
+                        if (pin.config.fusion) {
+                            const numPlaca = pin.config.fusion.replace('tapa_', '');
+                            placaStr = `Placa Fusionada #${numPlaca}`;
+                        }
+                        
+                        // Zona o Habitación
+                        const zonaStr = pin.config.zona ? pin.config.zona.trim() : 'Sin especificar';
+                        
+                        // Nota detallada
+                        notasEquiposArr.push(`- ${eqNombre} (${pn}) [${placaStr} | Zona: ${zonaStr}]: ${pin.config.nota.trim()}`);
                     }
-                    
-                    // Zona o Habitación
-                    const zonaStr = pin.config.zona ? pin.config.zona.trim() : 'Sin especificar';
-                    
-                    // Nota detallada
-                    notasEquiposArr.push(`- ${eqNombre} (${pn}) [${placaStr} | Zona: ${zonaStr}]: ${pin.config.nota.trim()}`);
-                }
-            });
-            
-            let notasFinalesStr = notasPlanoVal;
-            if (notasEquiposArr.length > 0) {
-                if (notasFinalesStr) {
-                    notasFinalesStr += '\n\nNotas de Equipos:\n' + notasEquiposArr.join('\n');
-                } else {
-                    notasFinalesStr = 'Notas de Equipos:\n' + notasEquiposArr.join('\n');
-                }
-            }
-
-            let zonaVisual = {
-                id: 'z_visual_' + plano.id,
-                nombre: `Equipos en Plano (${plano.nombre})`,
-                ventilacion: 'N/A',
-                mueblesIluminacion: 'N/A',
-                cajas: [],
-                equipos: {},
-                otros: `Equipos y faceplates distribuidos en la propuesta visual del piso: ${plano.nombre}.`,
-                notas: notasFinalesStr
-            };
-            TODOS_EQUIPOS.forEach(eq => { zonaVisual.equipos[eq.id] = 0; });
-            
-            // Sumar cantidades de los equipos base
-            plano.pinesPlano.forEach(pin => {
-                if(zonaVisual.equipos[pin.equipoId] !== undefined) {
-                    zonaVisual.equipos[pin.equipoId]++;
-                }
-            });
-
-            // Calcular Faceplates automáticamente según fusiones
-            let gruposTapas = {};
-            let individualesCount = 0;
-            
-            plano.pinesPlano.forEach(pin => {
-                const fusion = pin.config && pin.config.fusion;
-                if (fusion) {
-                    if (!gruposTapas[fusion]) {
-                        gruposTapas[fusion] = 0;
-                    }
-                    gruposTapas[fusion]++;
-                } else {
-                    individualesCount++;
-                }
-            });
-
-            // Sumar faceplates por grupo
-            Object.keys(gruposTapas).forEach(grupoId => {
-                let size = gruposTapas[grupoId];
-                if (size > 5) size = 5; // Límite físico de fusión
-                if (size > 0) {
-                    let fpId = `c4_fp${size}`;
-                    if (zonaVisual.equipos[fpId] !== undefined) {
-                        zonaVisual.equipos[fpId]++;
+                });
+                
+                let notasFinalesStr = notasPlanoVal;
+                if (notasEquiposArr.length > 0) {
+                    if (notasFinalesStr) {
+                        notasFinalesStr += '\n\nNotas de Equipos:\n' + notasEquiposArr.join('\n');
+                    } else {
+                        notasFinalesStr = 'Notas de Equipos:\n' + notasEquiposArr.join('\n');
                     }
                 }
-            });
 
-            // Sumar faceplates individuales
-            if (individualesCount > 0) {
-                if (zonaVisual.equipos['c4_fp1'] !== undefined) {
-                    zonaVisual.equipos['c4_fp1'] += individualesCount;
+                let zonaVisual = {
+                    id: 'z_visual_' + plano.id + '_p' + pagNum,
+                    nombre: `Equipos en Plano (${plano.nombre}${sufijoPag})`,
+                    ventilacion: 'N/A',
+                    mueblesIluminacion: 'N/A',
+                    cajas: [],
+                    equipos: {},
+                    otros: `Equipos y faceplates distribuidos en la propuesta visual del piso: ${plano.nombre} (Página ${pagNum}).`,
+                    notes: '', // Legacy back-compatibility
+                    notas: notasFinalesStr
+                };
+                TODOS_EQUIPOS.forEach(eq => { zonaVisual.equipos[eq.id] = 0; });
+                
+                // Sumar cantidades de los equipos base de esta página
+                pinesDeEstaPagina.forEach(pin => {
+                    if(zonaVisual.equipos[pin.equipoId] !== undefined) {
+                        zonaVisual.equipos[pin.equipoId]++;
+                    }
+                });
+
+                // Calcular Faceplates automáticamente según fusiones de esta página
+                let gruposTapas = {};
+                let individualesCount = 0;
+                
+                pinesDeEstaPagina.forEach(pin => {
+                    const fusion = pin.config && pin.config.fusion;
+                    if (fusion) {
+                        if (!gruposTapas[fusion]) {
+                            gruposTapas[fusion] = 0;
+                        }
+                        gruposTapas[fusion]++;
+                    } else {
+                        individualesCount++;
+                    }
+                });
+
+                // Sumar faceplates por grupo
+                Object.keys(gruposTapas).forEach(grupoId => {
+                    let size = gruposTapas[grupoId];
+                    if (size > 5) size = 5; // Límite físico de fusión
+                    if (size > 0) {
+                        let fpId = `c4_fp${size}`;
+                        if (zonaVisual.equipos[fpId] !== undefined) {
+                            zonaVisual.equipos[fpId]++;
+                        }
+                    }
+                });
+
+                // Sumar faceplates individuales
+                if (individualesCount > 0) {
+                    if (zonaVisual.equipos['c4_fp1'] !== undefined) {
+                        zonaVisual.equipos['c4_fp1'] += individualesCount;
+                    }
                 }
-            }
 
-            zonasExportar.push(zonaVisual);
+                zonasExportar.push(zonaVisual);
+            });
         }
     });
 
@@ -2271,6 +2287,7 @@ function renderizarCatalogoDraggable() {
                             y: y,
                             equipoId: equipoId,
                             equipoInfo: equipoInfo,
+                            pagina: pageNum || 1,
                             config: {}
                         };
                         pinesPlano.push(nuevoPin);
@@ -2341,6 +2358,7 @@ dropZone.addEventListener('click', async (e) => {
             y: y,
             equipoId: equipoId,
             equipoInfo: equipoInfo,
+            pagina: pageNum || 1,
             config: {}
         };
         pinesPlano.push(nuevoPin);
@@ -2400,6 +2418,7 @@ dropZone.addEventListener('drop', async (e) => {
         y: y,
         equipoId: equipoId,
         equipoInfo: equipoInfo,
+        pagina: pageNum || 1,
         config: {}
     };
     pinesPlano.push(nuevoPin);
@@ -2495,6 +2514,12 @@ async function verificarFusionPorSuperposicion(pin, x, y) {
 function renderizarPines() {
     dropZone.innerHTML = '';
     pinesPlano.forEach(pin => {
+        // Filtrar por página actual si es un documento PDF
+        const pinPage = pin.pagina || 1;
+        const currentPage = pageNum || 1;
+        if (pdfDoc && pinPage !== currentPage) {
+            return;
+        }
         const pinEl = document.createElement('div');
         pinEl.id = pin.id;
         
