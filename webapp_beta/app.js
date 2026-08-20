@@ -1302,34 +1302,45 @@ btnExportar.addEventListener('click', async () => {
         return;
     }
     
-    // Crear una copia temporal de las zonas para inyectar los equipos del plano
-    let zonasExportar = JSON.parse(JSON.stringify(zonas));
+    // Crear una copia temporal de las zo    // Sincronizar el plano activo actual
+    actualizarPlanoActivoEnArray();
     
-    // Sincronizar el plano activo actual    planos.forEach(plano => {
+    // Recorrer todos los planos y agregarlos a zonasExportar agrupados por Ubicación/Habitación
+    planos.forEach(plano => {
         if (plano.pinesPlano && plano.pinesPlano.length > 0) {
-            // Agrupar los pines de este plano por el número de página del PDF
-            let pinesPorPagina = {};
+            // Agrupar los pines de este plano por página y por Habitación/Zona
+            let gruposPines = {};
             plano.pinesPlano.forEach(pin => {
                 const pag = pin.pagina || 1;
-                if (!pinesPorPagina[pag]) {
-                    pinesPorPagina[pag] = [];
+                const zona = (pin.config && pin.config.zona) ? pin.config.zona.trim() : 'Sin ubicación';
+                const key = `${pag}_${zona}`;
+                if (!gruposPines[key]) {
+                    gruposPines[key] = {
+                        pagina: pag,
+                        zona: zona,
+                        pines: []
+                    };
                 }
-                pinesPorPagina[pag].push(pin);
+                gruposPines[key].pines.push(pin);
             });
 
-            const paginasConPines = Object.keys(pinesPorPagina);
-            const totalPaginasConPines = paginasConPines.length;
+            const keysGrupos = Object.keys(gruposPines);
 
-            paginasConPines.forEach(pagKey => {
-                const pagNum = parseInt(pagKey);
-                const pinesDeEstaPagina = pinesPorPagina[pagKey];
+            keysGrupos.forEach(key => {
+                const grupo = gruposPines[key];
+                const pagNum = grupo.pagina;
+                const zonaName = grupo.zona;
+                const pinesDeEstaZona = grupo.pines;
+                
+                // Obtener cuántas páginas con pines hay en total para este plano
+                let totalPaginasConPines = [...new Set(plano.pinesPlano.map(p => p.pagina || 1))].length;
                 const sufijoPag = totalPaginasConPines > 1 ? ` - Pág ${pagNum}` : '';
                 
                 const notasPlanoVal = document.getElementById('notas-plano-textarea') ? document.getElementById('notas-plano-textarea').value : '';
 
-                // Recopilar notas por equipo/pin para esta página específica
+                // Recopilar notas por equipo/pin para esta zona específica
                 let notasEquiposArr = [];
-                pinesDeEstaPagina.forEach(pin => {
+                pinesDeEstaZona.forEach(pin => {
                     if (pin.config && pin.config.nota && pin.config.nota.trim() !== '') {
                         const info = pin.equipoInfo || TODOS_EQUIPOS.find(eq => eq.id === pin.equipoId);
                         const eqNombre = info ? info.nombre : 'Equipo';
@@ -1342,11 +1353,8 @@ btnExportar.addEventListener('click', async () => {
                             placaStr = `Placa Fusionada #${numPlaca}`;
                         }
                         
-                        // Zona o Habitación
-                        const zonaStr = pin.config.zona ? pin.config.zona.trim() : 'Sin especificar';
-                        
                         // Nota detallada
-                        notasEquiposArr.push(`- ${eqNombre} (${pn}) [${placaStr} | Zona: ${zonaStr}]: ${pin.config.nota.trim()}`);
+                        notasEquiposArr.push(`- ${eqNombre} (${pn}) [${placaStr}]: ${pin.config.nota.trim()}`);
                     }
                 });
                 
@@ -1360,30 +1368,31 @@ btnExportar.addEventListener('click', async () => {
                 }
 
                 let zonaVisual = {
-                    id: 'z_visual_' + plano.id + '_p' + pagNum,
-                    nombre: `Equipos en Plano (${plano.nombre}${sufijoPag})`,
+                    id: 'z_visual_' + plano.id + '_p' + pagNum + '_' + encodeURIComponent(zonaName),
+                    // Esto va en la columna "Habitación / Zona": Ej. "Cocina (Planta Baja)"
+                    nombre: `${zonaName} (${plano.nombre}${sufijoPag})`,
                     ventilacion: 'N/A',
                     mueblesIluminacion: 'N/A',
                     cajas: [],
                     equipos: {},
-                    otros: `Equipos y faceplates distribuidos en la propuesta visual del piso: ${plano.nombre} (Página ${pagNum}).`,
+                    otros: `Equipos distribuidos en el plano ${plano.nombre}, ubicación: ${zonaName}.`,
                     notes: '', // Legacy back-compatibility
                     notas: notasFinalesStr
                 };
                 TODOS_EQUIPOS.forEach(eq => { zonaVisual.equipos[eq.id] = 0; });
                 
-                // Sumar cantidades de los equipos base de esta página
-                pinesDeEstaPagina.forEach(pin => {
+                // Sumar cantidades de los equipos base de esta ubicación
+                pinesDeEstaZona.forEach(pin => {
                     if(zonaVisual.equipos[pin.equipoId] !== undefined) {
                         zonaVisual.equipos[pin.equipoId]++;
                     }
                 });
 
-                // Calcular Faceplates automáticamente según fusiones de esta página
+                // Calcular Faceplates automáticamente según fusiones de esta ubicación
                 let gruposTapas = {};
                 let individualesCount = 0;
                 
-                pinesDeEstaPagina.forEach(pin => {
+                pinesDeEstaZona.forEach(pin => {
                     const fusion = pin.config && pin.config.fusion;
                     if (fusion) {
                         if (!gruposTapas[fusion]) {
