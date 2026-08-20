@@ -2106,8 +2106,15 @@ inputPlanoFile.addEventListener('change', async (e) => {
 
 function renderPDFPage(num) {
     pdfDoc.getPage(num).then(page => {
-        // Escalar el PDF para que se vea bien en alta resolución y aplicar rotación
-        const viewport = page.getViewport({ scale: 2.0, rotation: pdfRotation });
+        // Escalar el PDF dinámicamente para asegurar nitidez (lado más largo a ~3500px)
+        const baseViewport = page.getViewport({ scale: 1.0 });
+        const maxDim = Math.max(baseViewport.width, baseViewport.height);
+        
+        let targetScale = 3500 / maxDim;
+        // Limitar la escala entre 1.5 (planos gigantes) y 5.0 (planos pequeños)
+        targetScale = Math.max(1.5, Math.min(5.0, targetScale));
+
+        const viewport = page.getViewport({ scale: targetScale, rotation: pdfRotation });
         pdfCanvas.height = viewport.height;
         pdfCanvas.width = viewport.width;
 
