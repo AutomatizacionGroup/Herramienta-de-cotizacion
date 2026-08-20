@@ -161,6 +161,97 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Toast informativo para colocar pines (dentro de vista-plano para verse en Fullscreen) -->
+            <div id="colocacion-toast" style="display:none; position:fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(195, 32, 50, 0.95); color: white; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: 600; font-size: 0.9rem; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items:center; gap: 0.5rem; border: 1px solid rgba(255,255,255,0.2);">
+                <i class="ri-map-pin-add-line" style="font-size: 1.2rem;"></i>
+                <span id="colocacion-toast-text">Modo Colocación: Haz clic en el plano para colocar el equipo</span>
+            </div>
+
+            <!-- Modal para Alertas del Sistema (Custom Alert) -->
+            <div id="modal-custom-alert" class="modal-overlay hidden" style="z-index: 9999;">
+                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+                    <h2 id="custom-alert-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                        <i class="ri-error-warning-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Aviso
+                    </h2>
+                    <p id="custom-alert-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
+                    <div class="modal-actions" style="justify-content: center; gap: 0;">
+                        <button id="btn-custom-alert-ok" class="btn-primary" style="padding: 0.6rem 2rem; border-radius: 8px;">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Confirmaciones del Sistema (Custom Confirm) -->
+            <div id="modal-custom-confirm" class="modal-overlay hidden" style="z-index: 9999;">
+                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+                    <h2 id="custom-confirm-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                        <i class="ri-question-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Confirmación
+                    </h2>
+                    <p id="custom-confirm-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
+                    <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
+                        <button id="btn-custom-confirm-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
+                        <button id="btn-custom-confirm-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Fusionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Inputs/Prompts del Sistema (Custom Prompt) -->
+            <div id="modal-custom-prompt" class="modal-overlay hidden" style="z-index: 9999;">
+                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+                    <h2 id="custom-prompt-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                        <i class="ri-edit-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Entrada de Datos
+                    </h2>
+                    <p id="custom-prompt-message" style="color:var(--text-main); margin-bottom:1rem; font-size:0.95rem; line-height:1.4; text-align: left;"></p>
+                    <input type="text" id="custom-prompt-input" class="input-control" style="margin-bottom:1.5rem; font-size:0.95rem; background:rgba(0,0,0,0.5); border:1px solid var(--border-color); color:white; padding: 0.6rem;" autocomplete="off">
+                    <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
+                        <button id="btn-custom-prompt-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
+                        <button id="btn-custom-prompt-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Gestión de Pin -->
+            <div id="modal-pin-config" class="modal-overlay hidden">
+                <div class="modal-content" style="max-width: 350px;">
+                    <h2 id="pin-config-title" style="margin-top:0; font-size:1.1rem; color:white;">Configurar Equipo</h2>
+                    <p id="pin-config-subtitle" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">C4-XXX</p>
+                    
+                    <div id="container-pin-grupo-selector" class="input-group" style="margin-bottom: 1.2rem; display:none;">
+                        <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Dispositivo en esta Tapa</label>
+                        <select id="select-pin-grupo-activo" class="input-control" style="font-size:0.85rem; border-color:var(--primary);"></select>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 0.8rem;">
+                        <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Habitación / Zona <span style="color: var(--primary);">* Obligatorio</span></label>
+                        <input type="text" id="input-pin-zona" class="input-control" placeholder="Ej. Cocina, Sala de Estar, Pasillo..." style="font-size:0.85rem;" autocomplete="off">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 1.2rem;">
+                        <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Fusión de Tapa (Placa Compartida)</label>
+                        <select id="select-pin-fusion" class="input-control" style="font-size:0.85rem;">
+                            <!-- Se llena dinámicamente en JS -->
+                        </select>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 1.2rem;">
+                        <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Notas del Dispositivo</label>
+                        <textarea id="input-pin-nota" class="input-control" placeholder="Ej. Altura 1.40m, controlador principal..." style="height: 70px; resize:none; font-size:0.85rem;"></textarea>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap: 1rem;">
+                        <button id="btn-pin-lock" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; justify-content:center;">
+                            <i class="ri-lock-unlock-line"></i> Anclar / Bloquear
+                        </button>
+                        <button id="btn-pin-delete" class="btn-primary" style="background:rgba(239, 68, 68, 0.2); border:1px solid var(--danger); color:var(--danger); justify-content:center;">
+                            <i class="ri-delete-bin-line"></i> Eliminar Equipo
+                        </button>
+                    </div>
+
+                    <div class="modal-actions" style="margin-top:1.5rem; justify-content:center;">
+                        <button id="btn-pin-close" class="btn-ghost">Cerrar</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -206,54 +297,6 @@
         </div>
     </div>
 
-    <!-- Toast informativo para colocar pines -->
-    <div id="colocacion-toast" style="display:none; position:fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(195, 32, 50, 0.95); color: white; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: 600; font-size: 0.9rem; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items:center; gap: 0.5rem; border: 1px solid rgba(255,255,255,0.2);">
-        <i class="ri-map-pin-add-line" style="font-size: 1.2rem;"></i>
-        <span id="colocacion-toast-text">Modo Colocación: Haz clic en el plano para colocar el equipo</span>
-    </div>
-
-    <!-- Modal para Alertas del Sistema (Custom Alert) -->
-    <div id="modal-custom-alert" class="modal-overlay hidden" style="z-index: 9999;">
-        <div class="modal-content glass" style="max-width: 420px; text-align: center;">
-            <h2 id="custom-alert-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
-                <i class="ri-error-warning-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Aviso
-            </h2>
-            <p id="custom-alert-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
-            <div class="modal-actions" style="justify-content: center; gap: 0;">
-                <button id="btn-custom-alert-ok" class="btn-primary" style="padding: 0.6rem 2rem; border-radius: 8px;">Aceptar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Confirmaciones del Sistema (Custom Confirm) -->
-    <div id="modal-custom-confirm" class="modal-overlay hidden" style="z-index: 9999;">
-        <div class="modal-content glass" style="max-width: 420px; text-align: center;">
-            <h2 id="custom-confirm-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
-                <i class="ri-question-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Confirmación
-            </h2>
-            <p id="custom-confirm-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
-            <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
-                <button id="btn-custom-confirm-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
-                <button id="btn-custom-confirm-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Fusionar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Inputs/Prompts del Sistema (Custom Prompt) -->
-    <div id="modal-custom-prompt" class="modal-overlay hidden" style="z-index: 9999;">
-        <div class="modal-content glass" style="max-width: 420px; text-align: center;">
-            <h2 id="custom-prompt-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
-                <i class="ri-edit-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Entrada de Datos
-            </h2>
-            <p id="custom-prompt-message" style="color:var(--text-main); margin-bottom:1rem; font-size:0.95rem; line-height:1.4; text-align: left;"></p>
-            <input type="text" id="custom-prompt-input" class="input-control" style="margin-bottom:1.5rem; font-size:0.95rem; background:rgba(0,0,0,0.5); border:1px solid var(--border-color); color:white; padding: 0.6rem;" autocomplete="off">
-            <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
-                <button id="btn-custom-prompt-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
-                <button id="btn-custom-prompt-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Aceptar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- SheetJS (Para exportar Excel) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     
@@ -263,49 +306,6 @@
         // Configurar el worker de PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
-
-    <!-- Modal Gestión de Pin -->
-    <div id="modal-pin-config" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 350px;">
-            <h2 id="pin-config-title" style="margin-top:0; font-size:1.1rem; color:white;">Configurar Equipo</h2>
-            <p id="pin-config-subtitle" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">C4-XXX</p>
-            
-            <div id="container-pin-grupo-selector" class="input-group" style="margin-bottom: 1.2rem; display:none;">
-                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Dispositivo en esta Tapa</label>
-                <select id="select-pin-grupo-activo" class="input-control" style="font-size:0.85rem; border-color:var(--primary);"></select>
-            </div>
-            
-            <div class="input-group" style="margin-bottom: 0.8rem;">
-                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Habitación / Zona <span style="color: var(--primary);">* Obligatorio</span></label>
-                <input type="text" id="input-pin-zona" class="input-control" placeholder="Ej. Cocina, Sala de Estar, Pasillo..." style="font-size:0.85rem;" autocomplete="off">
-            </div>
-
-            <div class="input-group" style="margin-bottom: 1.2rem;">
-                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Fusión de Tapa (Placa Compartida)</label>
-                <select id="select-pin-fusion" class="input-control" style="font-size:0.85rem;">
-                    <!-- Se llena dinámicamente en JS -->
-                </select>
-            </div>
-
-            <div class="input-group" style="margin-bottom: 1.2rem;">
-                <label style="color:var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; display:block; text-align: left;">Notas del Dispositivo</label>
-                <textarea id="input-pin-nota" class="input-control" placeholder="Ej. Altura 1.40m, controlador principal..." style="height: 70px; resize:none; font-size:0.85rem;"></textarea>
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap: 1rem;">
-                <button id="btn-pin-lock" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; justify-content:center;">
-                    <i class="ri-lock-unlock-line"></i> Anclar / Bloquear
-                </button>
-                <button id="btn-pin-delete" class="btn-primary" style="background:rgba(239, 68, 68, 0.2); border:1px solid var(--danger); color:var(--danger); justify-content:center;">
-                    <i class="ri-delete-bin-line"></i> Eliminar Equipo
-                </button>
-            </div>
-
-            <div class="modal-actions" style="margin-top:1.5rem; justify-content:center;">
-                <button id="btn-pin-close" class="btn-ghost">Cerrar</button>
-            </div>
-        </div>
-    </div>
 
     <script src="capacitor.js"></script>
     <script src="db.js?v=37"></script>
