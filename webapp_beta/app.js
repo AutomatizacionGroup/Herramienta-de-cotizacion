@@ -2106,28 +2106,34 @@ inputPlanoFile.addEventListener('change', async (e) => {
 
 function renderPDFPage(num) {
     pdfDoc.getPage(num).then(page => {
-        // Escalar el PDF dinámicamente y con soporte para pantallas de alta resolución (Retina / Móviles)
+        // Escalar el PDF dinámicamente según si es PC o dispositivo móvil
         const baseViewport = page.getViewport({ scale: 1.0 });
         const maxDim = Math.max(baseViewport.width, baseViewport.height);
         
-        // Obtener el factor de escala de píxeles del dispositivo (Retina/High-DPI)
         const dpr = window.devicePixelRatio || 1;
+        const isMobile = (window.Capacitor && window.Capacitor.getPlatform() !== 'web') || 
+                         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Apuntar a 2500px lógicos. En pantallas Retina 2x serán 5000px físicos de textura
-        let targetScale = (2500 * dpr) / maxDim;
-        // Limitar la escala base entre 1.5 (planos gigantes) y 6.0 (planos pequeños)
-        targetScale = Math.max(1.5, Math.min(6.0, targetScale));
+        // Asignar límites de tamaño: PC admite resoluciones gigantescas (hasta 9000px físicos)
+        const targetLogicalSize = isMobile ? 2500 : 4500;
+        const maxPhysicalLimit = isMobile ? 5000 : 9000;
+        
+        let targetScale = (targetLogicalSize * dpr) / maxDim;
+        // Limitar la escala base entre 1.5 y 8.0
+        targetScale = Math.max(1.5, Math.min(8.0, targetScale));
 
-        // Para evitar crashes de memoria en móviles, limitamos la textura del canvas a max 5000px físicos
+        // Limitar resolución máxima para evitar sobrecarga de GPU / memoria
         const tempViewport = page.getViewport({ scale: targetScale, rotation: pdfRotation });
         const tempMax = Math.max(tempViewport.width, tempViewport.height);
-        if (tempMax > 5000) {
-            targetScale = targetScale * (5000 / tempMax);
+        if (tempMax > maxPhysicalLimit) {
+            targetScale = targetScale * (maxPhysicalLimit / tempMax);
         }
 
         const viewport = page.getViewport({ scale: targetScale, rotation: pdfRotation });
         pdfCanvas.height = viewport.height;
         pdfCanvas.width = viewport.width;
+        
+        console.log(`[PDF Render] Pág: ${num} | DPR: ${dpr} | Escala final: ${targetScale.toFixed(2)} | Res: ${pdfCanvas.width}x${pdfCanvas.height}`);
 
         // Limitar tamaño en pantalla para que no se desborde usando CSS
         pdfCanvas.style.width = '100%';
