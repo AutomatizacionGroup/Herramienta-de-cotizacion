@@ -28,6 +28,9 @@
             <button id="btn-volver-dashboard" class="btn-ghost" style="color:var(--text-muted); border: 1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;">
                 <i class="ri-arrow-left-line"></i> Mis Proyectos
             </button>
+            <button id="btn-respaldar" class="btn-ghost" style="color:var(--accent); border: 1px solid var(--accent); display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;" title="Guardar una copia de este proyecto (.c4proj) en tu computador">
+                <i class="ri-download-cloud-line"></i> Respaldar (.c4proj)
+            </button>
             <button id="btn-exportar" class="btn-primary">
                 <i class="ri-file-excel-2-line"></i> Exportar
             </button>
@@ -38,9 +41,11 @@
     <main id="dashboard-view" class="app-content" style="display:flex; flex-direction:column; gap:2rem; padding-top:2rem;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap: 1rem; flex-wrap: wrap;">
             <h2>Tus Proyectos de Levantamiento</h2>
-            <div style="display:flex; gap: 0.8rem;">
+            <div style="display:flex; gap: 0.8rem; flex-wrap: wrap;">
                 <button id="btn-crear-piloto" class="btn-ghost" style="color:var(--accent); border: 1px dashed var(--accent); padding: 0.5rem 1rem; border-radius: 8px; font-weight:600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;"><i class="ri-magic-line"></i> Cargar Proyecto Piloto</button>
+                <button id="btn-importar-respaldo" class="btn-ghost" style="color:var(--primary); border: 1px dashed var(--primary); padding: 0.5rem 1rem; border-radius: 8px; font-weight:600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;" title="Importar un archivo de proyecto .c4proj"><i class="ri-upload-line"></i> Importar Proyecto</button>
                 <button id="btn-nuevo-proyecto" class="btn-primary"><i class="ri-add-line"></i> Nuevo Proyecto</button>
+                <input type="file" id="input-importar-respaldo" accept=".c4proj" style="display:none;">
             </div>
         </div>
         <div id="lista-proyectos" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">

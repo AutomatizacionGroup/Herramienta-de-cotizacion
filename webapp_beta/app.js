@@ -219,6 +219,9 @@ const btnCancelarZona = document.getElementById('btn-cancelar-zona');
 const btnGuardarZona = document.getElementById('btn-guardar-zona');
 const inputZonaNombre = document.getElementById('input-zona-nombre');
 const btnExportar = document.getElementById('btn-exportar');
+const btnRespaldar = document.getElementById('btn-respaldar');
+const btnImportarRespaldo = document.getElementById('btn-importar-respaldo');
+const inputImportarRespaldo = document.getElementById('input-importar-respaldo');
 
 btnAddZona.addEventListener('click', () => {
     inputZonaNombre.value = '';
@@ -852,8 +855,11 @@ const modalConfirm = document.getElementById('modal-confirm');
 async function renderDashboard() {
     const mainEditor = document.getElementById('main-editor-view');
     const dashboardView = document.getElementById('dashboard-view');
+    const headerControls = document.getElementById('header-editor-controls');
+    
     mainEditor.style.display = 'none';
     dashboardView.style.display = 'flex';
+    if (headerControls) headerControls.style.display = 'none';
     
     const container = document.getElementById('lista-proyectos');
     container.innerHTML = '';
@@ -1290,6 +1296,8 @@ async function abrirProyecto(id) {
     
     document.getElementById('dashboard-view').style.display = 'none';
     document.getElementById('main-editor-view').style.display = 'block';
+    const headerControls = document.getElementById('header-editor-controls');
+    if (headerControls) headerControls.style.display = 'flex';
     document.getElementById('tab-lista').click();
 }
 
@@ -2742,5 +2750,72 @@ document.addEventListener('fullscreenchange', () => {
         }
     }
 });
+
+// Lógica para exportar el respaldo del proyecto (.c4proj)
+if (btnRespaldar) {
+    btnRespaldar.addEventListener('click', async () => {
+        if (!currentProyectoId) {
+            alert("No hay un proyecto activo para respaldar.");
+            return;
+        }
+        actualizarPlanoActivoEnArray();
+        try {
+            const proy = await DB.getProyecto(currentProyectoId);
+            if (!proy) {
+                alert("No se encontró el proyecto en la base de datos.");
+                return;
+            }
+            
+            const dataStr = JSON.stringify(proy);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            const safeName = proy.nombre.replace(/[^a-z0-9]/gi, '_');
+            link.download = `${safeName}_backup.c4proj`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch(err) {
+            alert("Error al exportar el respaldo: " + err.message);
+        }
+    });
+}
+
+// Lógica para importar el respaldo de proyecto (.c4proj)
+if (btnImportarRespaldo && inputImportarRespaldo) {
+    btnImportarRespaldo.addEventListener('click', () => {
+        inputImportarRespaldo.click();
+    });
+    
+    inputImportarRespaldo.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const proy = JSON.parse(event.target.result);
+                if (!proy.id || !proy.nombre || !proy.zonas) {
+                    alert("El archivo seleccionado no es un respaldo de proyecto válido (.c4proj).");
+                    return;
+                }
+                
+                // Guardar en la base de datos local
+                await DB.saveProyecto(proy);
+                alert(`¡Proyecto "${proy.nombre}" importado y guardado correctamente en tu computador!`);
+                
+                // Limpiar el input para permitir subir el mismo archivo después
+                inputImportarRespaldo.value = '';
+                
+                // Refrescar el dashboard
+                await renderDashboard();
+            } catch(err) {
+                alert("Error al leer el archivo de respaldo: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    });
+}
 
 } catch(e) { alert('Runtime Error: ' + e.message + ' ' + e.stack); }
