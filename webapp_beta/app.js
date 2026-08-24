@@ -219,6 +219,7 @@ const btnCancelarZona = document.getElementById('btn-cancelar-zona');
 const btnGuardarZona = document.getElementById('btn-guardar-zona');
 const inputZonaNombre = document.getElementById('input-zona-nombre');
 const btnExportar = document.getElementById('btn-exportar');
+const btnExportarImagen = document.getElementById('btn-exportar-imagen');
 const btnRespaldar = document.getElementById('btn-respaldar');
 const btnImportarRespaldo = document.getElementById('btn-importar-respaldo');
 const inputImportarRespaldo = document.getElementById('input-importar-respaldo');
@@ -2815,6 +2816,334 @@ if (btnImportarRespaldo && inputImportarRespaldo) {
             }
         };
         reader.readAsText(file);
+    });
+}
+
+// Dibujar pines en el lienzo temporal para la exportación de imagen
+function drawPinOnCanvas(ctx, pin, x, y, size) {
+    const radius = size / 2;
+    const tipo = pin.equipoInfo.tipo.toLowerCase();
+    const linea = pin.equipoInfo.linea;
+    
+    // Asignar color de relleno
+    let fillColor = '#1e293b'; // Default
+    if (tipo === 'dimmer') fillColor = '#9333ea';
+    else if (tipo === 'keypad') fillColor = '#2563eb';
+    else if (tipo === 'switch') fillColor = '#059669';
+    else if (tipo === 'sensor') fillColor = '#ea580c';
+    
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1.5, size * 0.12); // Grosor proporcional
+    
+    // Sombra para destacar sobre fondos claros
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = Math.max(2, size * 0.3);
+    ctx.shadowOffsetX = Math.max(1, size * 0.1);
+    ctx.shadowOffsetY = Math.max(1, size * 0.1);
+    
+    if (linea === 'Essential') {
+        // Cuadrado
+        ctx.rect(x - radius, y - radius, size, size);
+    } else if (linea === 'Contemporary') {
+        // Rombo (Rotado 45 grados)
+        ctx.translate(x, y);
+        ctx.rotate(45 * Math.PI / 180);
+        ctx.rect(-radius, -radius, size, size);
+    } else if (linea === 'Tradicional') {
+        // Cuadrado redondeado
+        const r = Math.max(2, size * 0.2); // Radio de redondeo
+        ctx.roundRect ? ctx.roundRect(x - radius, y - radius, size, size, r) : ctx.rect(x - radius, y - radius, size, size);
+    } else {
+        // LUX / Círculo
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    }
+    
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.stroke();
+    ctx.restore();
+    
+    // Dibujar Badge de Fusión (T1, T2...)
+    if (pin.config && pin.config.fusion) {
+        const num = pin.config.fusion.replace('tapa_', '');
+        ctx.save();
+        ctx.beginPath();
+        const badgeRadius = radius * 0.55;
+        let bx = x + radius * 0.7;
+        let by = y - radius * 0.7;
+        
+        ctx.arc(bx, by, badgeRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ff003c'; // Rojo vibrante
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1, badgeRadius * 0.2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Dibujar el texto del badge
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.max(8, badgeRadius * 1.2)}px Segoe UI, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('T' + num, bx, by);
+        ctx.restore();
+    }
+}
+
+// Lógica de exportación de plano como imagen con leyenda
+if (btnExportarImagen) {
+    btnExportarImagen.addEventListener('click', async () => {
+        if (!pdfDoc && !pdfArrayBuffer) {
+            alert("Sube un plano antes de exportar la propuesta visual.");
+            return;
+        }
+        
+        // Sincronizar plano activo actual
+        actualizarPlanoActivoEnArray();
+        
+        const proy = await DB.getProyecto(currentProyectoId);
+        const proyectoNombre = proy ? proy.nombre : "Proyecto";
+        const planoActivo = planos.find(p => p.id === currentPlanoId);
+        const planoNombre = planoActivo ? planoActivo.nombre : "Plano";
+        
+        // Mostrar cargando
+        const btnText = btnExportarImagen.innerHTML;
+        btnExportarImagen.disabled = true;
+        btnExportarImagen.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Procesando...';
+        
+        try {
+            let bgSource = null;
+            let originalWidth = 0;
+            let originalHeight = 0;
+            
+            if (pdfDoc) {
+                bgSource = pdfCanvas;
+                originalWidth = pdfCanvas.width;
+                originalHeight = pdfCanvas.height;
+            } else {
+                bgSource = planoImagen;
+                originalWidth = planoImagen.naturalWidth;
+                originalHeight = planoImagen.naturalHeight;
+            }
+            
+            if (originalWidth === 0 || originalHeight === 0) {
+                throw new Error("El plano de fondo no se ha cargado completamente.");
+            }
+            
+            // Crear canvas temporal
+            const tempCanvas = document.createElement('canvas');
+            const panelWidth = Math.max(500, Math.round(originalWidth * 0.22)); // Ancho del panel lateral de leyenda proporcional
+            
+            tempCanvas.width = originalWidth + panelWidth;
+            tempCanvas.height = originalHeight;
+            
+            const ctx = tempCanvas.getContext('2d');
+            
+            // 1. Dibujar el plano de fondo
+            ctx.drawImage(bgSource, 0, 0, originalWidth, originalHeight);
+            
+            // 2. Dibujar todos los pines correspondientes a la página activa
+            // Obtener tamaño relativo del pin
+            const basePinSize = (12 / (dropZone.clientWidth || 800)) * originalWidth;
+            const pinSize = Math.max(12, Math.min(40, basePinSize));
+            
+            pinesPlano.forEach(pin => {
+                const pag = pin.pagina || 1;
+                const currentPage = pageNum || 1;
+                if (pdfDoc && pag !== currentPage) return;
+                
+                const px = (pin.x / 100) * originalWidth;
+                const py = (pin.y / 100) * originalHeight;
+                
+                drawPinOnCanvas(ctx, pin, px, py, pinSize);
+            });
+            
+            // 3. Dibujar Leyenda de Equipos por Zonas
+            let zonasPines = {};
+            pinesPlano.forEach(pin => {
+                const pag = pin.pagina || 1;
+                if (pdfDoc && pag !== pageNum) return;
+                
+                const zName = (pin.config && pin.config.zona) ? pin.config.zona.trim() : 'Sin ubicación';
+                if (!zonasPines[zName]) {
+                    zonasPines[zName] = {};
+                }
+                const eqName = pin.equipoInfo.nombre;
+                const eqTipo = pin.equipoInfo.tipo;
+                const eqLinea = pin.equipoInfo.linea;
+                const key = `${eqName}||${eqTipo}||${eqLinea}`;
+                zonasPines[zName][key] = (zonasPines[zName][key] || 0) + 1;
+            });
+            
+            // Contar páginas con pines
+            let totalPaginasConPines = [...new Set(pinesPlano.map(p => p.pagina || 1))].length;
+            
+            // Dibujar panel lateral
+            ctx.fillStyle = '#0f172a'; // Slate 900
+            ctx.fillRect(originalWidth, 0, panelWidth, tempCanvas.height);
+            
+            // Línea divisoria
+            ctx.strokeStyle = '#334155'; // Slate 700
+            ctx.lineWidth = Math.max(3, tempCanvas.height * 0.002);
+            ctx.beginPath();
+            ctx.moveTo(originalWidth, 0);
+            ctx.lineTo(originalWidth, tempCanvas.height);
+            ctx.stroke();
+            
+            // Configurar fuentes relativas
+            const scaleFactorText = tempCanvas.height / 1000;
+            const fontTitleSize = Math.max(14, 20 * scaleFactorText);
+            const fontSubSize = Math.max(10, 13 * scaleFactorText);
+            const fontRoomSize = Math.max(11, 15 * scaleFactorText);
+            const fontDeviceSize = Math.max(9, 12 * scaleFactorText);
+            
+            let currentY = 45 * scaleFactorText;
+            
+            // Título del Panel
+            ctx.fillStyle = '#f8fafc'; // Slate 50
+            ctx.font = `bold ${fontTitleSize}px Segoe UI, sans-serif`;
+            ctx.textAlign = 'left';
+            ctx.fillText("PROPUESTA DE LEVANTAMIENTO", originalWidth + 25 * scaleFactorText, currentY);
+            currentY += 28 * scaleFactorText;
+            
+            // Subtítulo
+            ctx.fillStyle = '#cbd5e1'; // Slate 300
+            ctx.font = `bold ${fontSubSize}px Segoe UI, sans-serif`;
+            ctx.fillText(planoNombre.toUpperCase() + (totalPaginasConPines > 1 ? ` - PÁG ${pageNum}` : ''), originalWidth + 25 * scaleFactorText, currentY);
+            currentY += 20 * scaleFactorText;
+            
+            // Meta info
+            ctx.fillStyle = '#94a3b8'; // Slate 400
+            ctx.font = `${fontDeviceSize}px Segoe UI, sans-serif`;
+            ctx.fillText(`Cliente: ${proyectoNombre}`, originalWidth + 25 * scaleFactorText, currentY);
+            currentY += 18 * scaleFactorText;
+            ctx.fillText(`Fecha: ${new Date().toLocaleDateString()}`, originalWidth + 25 * scaleFactorText, currentY);
+            
+            currentY += 40 * scaleFactorText;
+            
+            // Título de Sección
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(originalWidth + 25 * scaleFactorText, currentY);
+            ctx.lineTo(originalWidth + panelWidth - 25 * scaleFactorText, currentY);
+            ctx.stroke();
+            
+            currentY += 25 * scaleFactorText;
+            
+            // Iterar habitaciones/zonas
+            const zNames = Object.keys(zonasPines);
+            if (zNames.length === 0) {
+                ctx.fillStyle = '#64748b'; // Slate 500
+                ctx.font = `italic ${fontSubSize}px Segoe UI, sans-serif`;
+                ctx.fillText("No hay equipos colocados en esta vista.", originalWidth + 25 * scaleFactorText, currentY);
+            } else {
+                zNames.forEach(zName => {
+                    if (currentY > tempCanvas.height - 80 * scaleFactorText) {
+                        ctx.fillStyle = '#f8fafc';
+                        ctx.font = `bold ${fontDeviceSize}px Segoe UI, sans-serif`;
+                        ctx.fillText("... (Más zonas en páginas siguientes)", originalWidth + 25 * scaleFactorText, currentY);
+                        return;
+                    }
+                    
+                    // Nombre de la Habitación
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.font = `bold ${fontRoomSize}px Segoe UI, sans-serif`;
+                    ctx.fillText(zName.toUpperCase(), originalWidth + 25 * scaleFactorText, currentY);
+                    currentY += 15 * scaleFactorText;
+                    
+                    // Dispositivos en esta habitación
+                    const equiposKeys = Object.keys(zonasPines[zName]);
+                    equiposKeys.forEach(eqKey => {
+                        const parts = eqKey.split('||');
+                        const eqName = parts[0];
+                        const eqTipo = parts[1];
+                        const eqLinea = parts[2];
+                        const qty = zonasPines[zName][eqKey];
+                        
+                        // Dibujar una miniatura de la forma del pin
+                        const iconX = originalWidth + 35 * scaleFactorText;
+                        const iconY = currentY - 4 * scaleFactorText;
+                        const sampleSize = Math.max(8, 11 * scaleFactorText);
+                        
+                        let fillColor = '#1e293b';
+                        if (eqTipo === 'dimmer') fillColor = '#9333ea';
+                        else if (eqTipo === 'keypad') fillColor = '#2563eb';
+                        else if (eqTipo === 'switch') fillColor = '#059669';
+                        else if (eqTipo === 'sensor') fillColor = '#ea580c';
+                        
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.fillStyle = fillColor;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 1;
+                        
+                        const r = sampleSize / 2;
+                        if (eqLinea === 'Essential') {
+                            ctx.rect(iconX - r, iconY - r, sampleSize, sampleSize);
+                        } else if (eqLinea === 'Contemporary') {
+                            ctx.translate(iconX, iconY);
+                            ctx.rotate(45 * Math.PI / 180);
+                            ctx.rect(-r, -r, sampleSize, sampleSize);
+                        } else if (eqLinea === 'Tradicional') {
+                            ctx.roundRect ? ctx.roundRect(iconX - r, iconY - r, sampleSize, sampleSize, 2) : ctx.rect(iconX - r, iconY - r, sampleSize, sampleSize);
+                        } else {
+                            ctx.arc(iconX, iconY, r, 0, 2 * Math.PI);
+                        }
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.restore();
+                        
+                        // Texto del equipo
+                        ctx.fillStyle = '#cbd5e1'; // Slate 300
+                        ctx.font = `${fontDeviceSize}px Segoe UI, sans-serif`;
+                        ctx.fillText(`${qty}x ${eqName} (${eqLinea})`, originalWidth + 50 * scaleFactorText, currentY);
+                        
+                        currentY += 18 * scaleFactorText;
+                    });
+                    
+                    currentY += 15 * scaleFactorText; // Separación
+                });
+            }
+            
+            // Convertir y descargar
+            const dataUrl = tempCanvas.toDataURL('image/png');
+            
+            // Si estamos en un dispositivo híbrido móvil (Capacitor)
+            if (window.Capacitor && window.Capacitor.getPlatform() !== 'web') {
+                const base64Data = dataUrl.split(',')[1];
+                const fileName = `Propuesta_${proyectoNombre.replace(/[^a-z0-9]/gi, '_')}_${planoNombre.replace(/[^a-z0-9]/gi, '_')}.png`;
+                
+                const { Filesystem } = Capacitor.Plugins;
+                const { Share } = Capacitor.Plugins;
+                
+                const writeResult = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: 'CACHE'
+                });
+                
+                await Share.share({
+                    title: 'Compartir Propuesta Visual',
+                    text: 'Aquí está la imagen del plano con la leyenda de equipos',
+                    url: writeResult.uri,
+                    dialogTitle: 'Compartir Propuesta'
+                });
+            } else {
+                // Descarga normal en PC
+                const link = document.createElement('a');
+                link.download = `Propuesta_${proyectoNombre.replace(/[^a-z0-9]/gi, '_')}_${planoNombre.replace(/[^a-z0-9]/gi, '_')}.png`;
+                link.href = dataUrl;
+                link.click();
+            }
+        } catch(err) {
+            alert("Error al exportar la propuesta visual como imagen: " + err.message);
+        } finally {
+            btnExportarImagen.disabled = false;
+            btnExportarImagen.innerHTML = btnText;
+        }
     });
 }
 
