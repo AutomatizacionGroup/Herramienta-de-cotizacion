@@ -2934,35 +2934,7 @@ if (btnExportarImagen) {
                 throw new Error("El plano de fondo no se ha cargado completamente.");
             }
             
-            // Crear canvas temporal
-            const tempCanvas = document.createElement('canvas');
-            const panelWidth = Math.max(500, Math.round(originalWidth * 0.22)); // Ancho del panel lateral de leyenda proporcional
-            
-            tempCanvas.width = originalWidth + panelWidth;
-            tempCanvas.height = originalHeight;
-            
-            const ctx = tempCanvas.getContext('2d');
-            
-            // 1. Dibujar el plano de fondo
-            ctx.drawImage(bgSource, 0, 0, originalWidth, originalHeight);
-            
-            // 2. Dibujar todos los pines correspondientes a la página activa
-            // Obtener tamaño relativo del pin
-            const basePinSize = (12 / (dropZone.clientWidth || 800)) * originalWidth;
-            const pinSize = Math.max(12, Math.min(40, basePinSize));
-            
-            pinesPlano.forEach(pin => {
-                const pag = pin.pagina || 1;
-                const currentPage = pageNum || 1;
-                if (pdfDoc && pag !== currentPage) return;
-                
-                const px = (pin.x / 100) * originalWidth;
-                const py = (pin.y / 100) * originalHeight;
-                
-                drawPinOnCanvas(ctx, pin, px, py, pinSize);
-            });
-            
-            // 3. Dibujar Leyenda de Equipos por Zonas
+            // 1. Obtener la leyenda de equipos por zonas
             let zonasPines = {};
             pinesPlano.forEach(pin => {
                 const pag = pin.pagina || 1;
@@ -2979,84 +2951,140 @@ if (btnExportarImagen) {
                 zonasPines[zName][key] = (zonasPines[zName][key] || 0) + 1;
             });
             
-            // Contar páginas con pines
-            let totalPaginasConPines = [...new Set(pinesPlano.map(p => p.pagina || 1))].length;
+            // 2. Determinar dimensiones y factores de escala basados en el ancho
+            const panelWidth = Math.max(550, Math.round(originalWidth * 0.25)); // Aumentado a 25%
+            const scaleFactorText = panelWidth / 550; // Escalar fuentes en base al ancho del panel, no al alto!
             
-            // Dibujar panel lateral
-            ctx.fillStyle = '#0f172a'; // Slate 900
-            ctx.fillRect(originalWidth, 0, panelWidth, tempCanvas.height);
-            
-            // Línea divisoria
-            ctx.strokeStyle = '#334155'; // Slate 700
-            ctx.lineWidth = Math.max(3, tempCanvas.height * 0.002);
-            ctx.beginPath();
-            ctx.moveTo(originalWidth, 0);
-            ctx.lineTo(originalWidth, tempCanvas.height);
-            ctx.stroke();
-            
-            // Configurar fuentes relativas
-            const scaleFactorText = tempCanvas.height / 1000;
             const fontTitleSize = Math.max(14, 20 * scaleFactorText);
             const fontSubSize = Math.max(10, 13 * scaleFactorText);
             const fontRoomSize = Math.max(11, 15 * scaleFactorText);
             const fontDeviceSize = Math.max(9, 12 * scaleFactorText);
             
+            // 3. Calcular la altura necesaria para listar todos los equipos sin truncar
+            let requiredHeight = 160 * scaleFactorText; // Altura inicial de cabecera y título
+            const zNames = Object.keys(zonasPines);
+            if (zNames.length === 0) {
+                requiredHeight += 40 * scaleFactorText;
+            } else {
+                zNames.forEach(zName => {
+                    requiredHeight += 25 * scaleFactorText; // Título de la zona
+                    const equiposKeys = Object.keys(zonasPines[zName]);
+                    requiredHeight += equiposKeys.length * 18 * scaleFactorText; // Cada línea de equipo
+                    requiredHeight += 15 * scaleFactorText; // Margen inferior de zona
+                });
+            }
+            requiredHeight += 40 * scaleFactorText; // Margen inferior final de seguridad
+            
+            // La altura final será el valor máximo entre el plano original y el listado de la leyenda
+            const finalHeight = Math.max(originalHeight, Math.round(requiredHeight));
+            const bgY = Math.round((finalHeight - originalHeight) / 2); // Centrar el plano verticalmente si la leyenda es más alta
+            
+            // 4. Crear canvas temporal con las nuevas dimensiones expandidas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = originalWidth + panelWidth;
+            tempCanvas.height = finalHeight;
+            
+            const ctx = tempCanvas.getContext('2d');
+            
+            // 5. Muestrear el color del píxel de la esquina del plano para rellenar los bordes extra sin cortes bruscos
+            let bgPixelColor = '#ffffff'; // Blanco por defecto
+            try {
+                const sampleCanvas = document.createElement('canvas');
+                sampleCanvas.width = 1;
+                sampleCanvas.height = 1;
+                const sampleCtx = sampleCanvas.getContext('2d');
+                sampleCtx.drawImage(bgSource, 0, 0, 1, 1);
+                const data = sampleCtx.getImageData(0, 0, 1, 1).data;
+                bgPixelColor = `rgb(${data[0]}, ${data[1]}, ${data[2]})`;
+            } catch (err) {
+                console.log("No se pudo muestrear el fondo, usando blanco por defecto", err);
+            }
+            
+            // Rellenar la zona del plano con el color muestreado
+            ctx.fillStyle = bgPixelColor;
+            ctx.fillRect(0, 0, originalWidth, finalHeight);
+            
+            // 6. Dibujar el plano de fondo
+            ctx.drawImage(bgSource, 0, bgY, originalWidth, originalHeight);
+            
+            // 7. Dibujar todos los pines correspondientes a la página activa
+            // Obtener tamaño relativo del pin
+            const basePinSize = (12 / (dropZone.clientWidth || 800)) * originalWidth;
+            const pinSize = Math.max(12, Math.min(40, basePinSize));
+            
+            pinesPlano.forEach(pin => {
+                const pag = pin.pagina || 1;
+                const currentPage = pageNum || 1;
+                if (pdfDoc && pag !== currentPage) return;
+                
+                const px = (pin.x / 100) * originalWidth;
+                const py = (pin.y / 100) * originalHeight + bgY;
+                
+                drawPinOnCanvas(ctx, pin, px, py, pinSize);
+            });
+            
+            // 8. Dibujar panel lateral oscuro de la Leyenda
+            ctx.fillStyle = '#0f172a'; // Slate 900
+            ctx.fillRect(originalWidth, 0, panelWidth, finalHeight);
+            
+            // Línea divisoria entre plano y panel
+            ctx.strokeStyle = '#334155'; // Slate 700
+            ctx.lineWidth = Math.max(3, finalHeight * 0.002);
+            ctx.beginPath();
+            ctx.moveTo(originalWidth, 0);
+            ctx.lineTo(originalWidth, finalHeight);
+            ctx.stroke();
+            
             let currentY = 45 * scaleFactorText;
+            const textPaddingLeft = 25 * scaleFactorText;
+            const maxTextWidth = panelWidth - 50 * scaleFactorText; // Margen de seguridad para exprimir texto si es necesario
             
             // Título del Panel
             ctx.fillStyle = '#f8fafc'; // Slate 50
             ctx.font = `bold ${fontTitleSize}px Segoe UI, sans-serif`;
             ctx.textAlign = 'left';
-            ctx.fillText("PROPUESTA DE LEVANTAMIENTO", originalWidth + 25 * scaleFactorText, currentY);
+            ctx.fillText("PROPUESTA DE LEVANTAMIENTO", originalWidth + textPaddingLeft, currentY, maxTextWidth);
             currentY += 28 * scaleFactorText;
             
-            // Subtítulo
+            // Subtítulo (Nombre de piso/plano)
+            let totalPaginasConPines = [...new Set(pinesPlano.map(p => p.pagina || 1))].length;
             ctx.fillStyle = '#cbd5e1'; // Slate 300
             ctx.font = `bold ${fontSubSize}px Segoe UI, sans-serif`;
-            ctx.fillText(planoNombre.toUpperCase() + (totalPaginasConPines > 1 ? ` - PÁG ${pageNum}` : ''), originalWidth + 25 * scaleFactorText, currentY);
+            ctx.fillText(planoNombre.toUpperCase() + (totalPaginasConPines > 1 ? ` - PÁG ${pageNum}` : ''), originalWidth + textPaddingLeft, currentY, maxTextWidth);
             currentY += 20 * scaleFactorText;
             
-            // Meta info
+            // Meta info (Cliente y Fecha)
             ctx.fillStyle = '#94a3b8'; // Slate 400
             ctx.font = `${fontDeviceSize}px Segoe UI, sans-serif`;
-            ctx.fillText(`Cliente: ${proyectoNombre}`, originalWidth + 25 * scaleFactorText, currentY);
+            ctx.fillText(`Cliente: ${proyectoNombre}`, originalWidth + textPaddingLeft, currentY, maxTextWidth);
             currentY += 18 * scaleFactorText;
-            ctx.fillText(`Fecha: ${new Date().toLocaleDateString()}`, originalWidth + 25 * scaleFactorText, currentY);
+            ctx.fillText(`Fecha: ${new Date().toLocaleDateString()}`, originalWidth + textPaddingLeft, currentY, maxTextWidth);
             
             currentY += 40 * scaleFactorText;
             
-            // Título de Sección
+            // Separador horizontal
             ctx.strokeStyle = '#334155';
             ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(originalWidth + 25 * scaleFactorText, currentY);
-            ctx.lineTo(originalWidth + panelWidth - 25 * scaleFactorText, currentY);
+            ctx.moveTo(originalWidth + textPaddingLeft, currentY);
+            ctx.lineTo(originalWidth + panelWidth - textPaddingLeft, currentY);
             ctx.stroke();
             
             currentY += 25 * scaleFactorText;
             
-            // Iterar habitaciones/zonas
-            const zNames = Object.keys(zonasPines);
+            // Dibujar Habitaciones y Equipos en el panel de Leyenda
             if (zNames.length === 0) {
                 ctx.fillStyle = '#64748b'; // Slate 500
                 ctx.font = `italic ${fontSubSize}px Segoe UI, sans-serif`;
-                ctx.fillText("No hay equipos colocados en esta vista.", originalWidth + 25 * scaleFactorText, currentY);
+                ctx.fillText("No hay equipos colocados en esta vista.", originalWidth + textPaddingLeft, currentY, maxTextWidth);
             } else {
                 zNames.forEach(zName => {
-                    if (currentY > tempCanvas.height - 80 * scaleFactorText) {
-                        ctx.fillStyle = '#f8fafc';
-                        ctx.font = `bold ${fontDeviceSize}px Segoe UI, sans-serif`;
-                        ctx.fillText("... (Más zonas en páginas siguientes)", originalWidth + 25 * scaleFactorText, currentY);
-                        return;
-                    }
-                    
-                    // Nombre de la Habitación
+                    // Escribir el nombre de la habitación
                     ctx.fillStyle = '#f1f5f9';
                     ctx.font = `bold ${fontRoomSize}px Segoe UI, sans-serif`;
-                    ctx.fillText(zName.toUpperCase(), originalWidth + 25 * scaleFactorText, currentY);
+                    ctx.fillText(zName.toUpperCase(), originalWidth + textPaddingLeft, currentY, maxTextWidth);
                     currentY += 15 * scaleFactorText;
                     
-                    // Dispositivos en esta habitación
                     const equiposKeys = Object.keys(zonasPines[zName]);
                     equiposKeys.forEach(eqKey => {
                         const parts = eqKey.split('||');
@@ -3065,7 +3093,7 @@ if (btnExportarImagen) {
                         const eqLinea = parts[2];
                         const qty = zonasPines[zName][eqKey];
                         
-                        // Dibujar una miniatura de la forma del pin
+                        // Miniatura visual de la forma del Pin
                         const iconX = originalWidth + 35 * scaleFactorText;
                         const iconY = currentY - 4 * scaleFactorText;
                         const sampleSize = Math.max(8, 11 * scaleFactorText);
@@ -3098,19 +3126,19 @@ if (btnExportarImagen) {
                         ctx.stroke();
                         ctx.restore();
                         
-                        // Texto del equipo
+                        // Nombre del equipo con ancho límite
                         ctx.fillStyle = '#cbd5e1'; // Slate 300
                         ctx.font = `${fontDeviceSize}px Segoe UI, sans-serif`;
-                        ctx.fillText(`${qty}x ${eqName} (${eqLinea})`, originalWidth + 50 * scaleFactorText, currentY);
+                        ctx.fillText(`${qty}x ${eqName} (${eqLinea})`, originalWidth + 50 * scaleFactorText, currentY, maxTextWidth - 25 * scaleFactorText);
                         
                         currentY += 18 * scaleFactorText;
                     });
                     
-                    currentY += 15 * scaleFactorText; // Separación
+                    currentY += 15 * scaleFactorText; // Separación entre zonas
                 });
             }
             
-            // Convertir y descargar
+            // Convertir canvas a URL de Imagen
             const dataUrl = tempCanvas.toDataURL('image/png');
             
             // Si estamos en un dispositivo híbrido móvil (Capacitor)
