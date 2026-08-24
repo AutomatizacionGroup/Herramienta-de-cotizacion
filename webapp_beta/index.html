@@ -28,15 +28,23 @@
             <button id="btn-volver-dashboard" class="btn-ghost" style="color:var(--text-muted); border: 1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;">
                 <i class="ri-arrow-left-line"></i> Mis Proyectos
             </button>
-            <button id="btn-respaldar" class="btn-ghost" style="color:var(--accent); border: 1px solid var(--accent); display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;" title="Guardar una copia de este proyecto (.c4proj) en tu computador">
-                <i class="ri-download-cloud-line"></i> Respaldar (.c4proj)
-            </button>
-            <button id="btn-exportar-imagen" class="btn-ghost" style="color:#10b981; border: 1px solid #10b981; display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem; border-radius: 8px;" title="Exportar plano y leyenda como imagen (.png)">
-                <i class="ri-image-line"></i> Exportar Imagen
-            </button>
-            <button id="btn-exportar" class="btn-primary">
-                <i class="ri-file-excel-2-line"></i> Exportar
-            </button>
+            
+            <div class="dropdown" style="position:relative; display:inline-block;">
+                <button id="btn-dropdown-exportar" class="btn-primary" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1.2rem; border-radius: 8px;">
+                    <i class="ri-download-2-line"></i> Guardar / Exportar <i class="ri-arrow-down-s-line"></i>
+                </button>
+                <div id="dropdown-exportar-menu" class="dropdown-menu hidden" style="position:absolute; right:0; top:calc(100% + 5px); background:#1e1b4b; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; width:220px; z-index:2000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow:hidden;">
+                    <button id="btn-exportar" class="dropdown-item" style="width:100%; text-align:left; background:transparent; border:none; color:white; padding: 0.8rem 1rem; display:flex; align-items:center; gap:0.6rem; cursor:pointer; transition: background 0.2s;">
+                        <i class="ri-file-excel-2-line" style="color:#ef4444; font-size:1.1rem;"></i> Cotización en Excel (.xlsx)
+                    </button>
+                    <button id="btn-exportar-imagen" class="dropdown-item" style="width:100%; text-align:left; background:transparent; border:none; color:white; padding: 0.8rem 1rem; display:flex; align-items:center; gap:0.6rem; border-top: 1px solid rgba(255,255,255,0.05); cursor:pointer; transition: background 0.2s;">
+                        <i class="ri-image-line" style="color:#10b981; font-size:1.1rem;"></i> Propuesta en Imagen (.png)
+                    </button>
+                    <button id="btn-respaldar" class="dropdown-item" style="width:100%; text-align:left; background:transparent; border:none; color:white; padding: 0.8rem 1rem; display:flex; align-items:center; gap:0.6rem; border-top: 1px solid rgba(255,255,255,0.05); cursor:pointer; transition: background 0.2s;">
+                        <i class="ri-download-cloud-line" style="color:#fbbf24; font-size:1.1rem;"></i> Respaldar Archivo (.c4proj)
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 

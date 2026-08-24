@@ -223,6 +223,8 @@ const btnExportarImagen = document.getElementById('btn-exportar-imagen');
 const btnRespaldar = document.getElementById('btn-respaldar');
 const btnImportarRespaldo = document.getElementById('btn-importar-respaldo');
 const inputImportarRespaldo = document.getElementById('input-importar-respaldo');
+const btnDropdownExportar = document.getElementById('btn-dropdown-exportar');
+const dropdownExportarMenu = document.getElementById('dropdown-exportar-menu');
 
 btnAddZona.addEventListener('click', () => {
     inputZonaNombre.value = '';
@@ -3145,6 +3147,26 @@ if (btnExportarImagen) {
             btnExportarImagen.innerHTML = btnText;
         }
     });
+}
+
+// Lógica de Menú Desplegable para Guardar / Exportar
+if (btnDropdownExportar && dropdownExportarMenu) {
+    btnDropdownExportar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownExportarMenu.classList.toggle('hidden');
+    });
+    
+    // Cerrar al hacer click fuera del menú
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+            dropdownExportarMenu.classList.add('hidden');
+        }
+    });
+    
+    // Cerrar al hacer click en cualquier opción
+    if (btnExportar) btnExportar.addEventListener('click', () => dropdownExportarMenu.classList.add('hidden'));
+    if (btnExportarImagen) btnExportarImagen.addEventListener('click', () => dropdownExportarMenu.classList.add('hidden'));
+    if (btnRespaldar) btnRespaldar.addEventListener('click', () => dropdownExportarMenu.classList.add('hidden'));
 }
 
 } catch(e) { alert('Runtime Error: ' + e.message + ' ' + e.stack); }

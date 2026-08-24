@@ -470,3 +470,11 @@ select option { color: #1a1b26 !important; background-color: #ffffff !important;
     padding: 1.5rem !important;
     background-color: var(--bg-dark) !important;
 }
+
+/* Estilos para el Menú Desplegable (Dropdown) de Exportación */
+.dropdown-menu.hidden {
+    display: none;
+}
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
