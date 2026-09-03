@@ -1664,8 +1664,26 @@ function guardarConfiguracionPin(pin) {
     if (inputZona) {
         const nuevaZona = inputZona.value.trim();
         if (!nuevaZona) {
-            alert("La ubicación (Habitación / Zona) es obligatoria.");
-            setTimeout(() => inputZona.focus(), 100);
+            inputZona.style.borderColor = 'var(--primary)';
+            inputZona.style.boxShadow = '0 0 0 2px rgba(195, 32, 50, 0.3)';
+            inputZona.oninput = () => {
+                inputZona.style.borderColor = '';
+                inputZona.style.boxShadow = '';
+            };
+            const resAlert = alert("La ubicación (Habitación / Zona) es obligatoria.");
+            if (resAlert && typeof resAlert.then === 'function') {
+                resAlert.then(() => {
+                    setTimeout(() => {
+                        inputZona.focus();
+                        inputZona.select();
+                    }, 50);
+                });
+            } else {
+                setTimeout(() => {
+                    inputZona.focus();
+                    inputZona.select();
+                }, 50);
+            }
             return false;
         }
         pin.config.zona = nuevaZona;

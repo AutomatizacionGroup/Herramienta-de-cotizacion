@@ -243,6 +243,8 @@ select option { color: #1a1b26 !important; background-color: #ffffff !important;
 /* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 1; transition: opacity 0.3s; }
 .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+.modal-overlay.modal-system { z-index: 100000 !important; background: rgba(0,0,0,0.75); }
+.modal-overlay.modal-system .modal-content { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.2); }
 .modal-content { width: 90%; max-width: 400px; transform: scale(1); transition: transform 0.3s; background: var(--bg-card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color);}
 .modal-content input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 1rem; border-radius: 8px; font-size: 1rem; margin: 1rem 0; outline: none; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; }

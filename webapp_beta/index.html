@@ -184,48 +184,6 @@
                 <span id="colocacion-toast-text">Modo Colocación: Haz clic en el plano para colocar el equipo</span>
             </div>
 
-            <!-- Modal para Alertas del Sistema (Custom Alert) -->
-            <div id="modal-custom-alert" class="modal-overlay hidden" style="z-index: 9999;">
-                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
-                    <h2 id="custom-alert-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
-                        <i class="ri-error-warning-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Aviso
-                    </h2>
-                    <p id="custom-alert-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
-                    <div class="modal-actions" style="justify-content: center; gap: 0;">
-                        <button id="btn-custom-alert-ok" class="btn-primary" style="padding: 0.6rem 2rem; border-radius: 8px;">Aceptar</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal para Confirmaciones del Sistema (Custom Confirm) -->
-            <div id="modal-custom-confirm" class="modal-overlay hidden" style="z-index: 9999;">
-                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
-                    <h2 id="custom-confirm-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
-                        <i class="ri-question-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Confirmación
-                    </h2>
-                    <p id="custom-confirm-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
-                    <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
-                        <button id="btn-custom-confirm-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
-                        <button id="btn-custom-confirm-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Fusionar</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal para Inputs/Prompts del Sistema (Custom Prompt) -->
-            <div id="modal-custom-prompt" class="modal-overlay hidden" style="z-index: 9999;">
-                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
-                    <h2 id="custom-prompt-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
-                        <i class="ri-edit-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Entrada de Datos
-                    </h2>
-                    <p id="custom-prompt-message" style="color:var(--text-main); margin-bottom:1rem; font-size:0.95rem; line-height:1.4; text-align: left;"></p>
-                    <input type="text" id="custom-prompt-input" class="input-control" style="margin-bottom:1.5rem; font-size:0.95rem; background:rgba(0,0,0,0.5); border:1px solid var(--border-color); color:white; padding: 0.6rem;" autocomplete="off">
-                    <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
-                        <button id="btn-custom-prompt-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
-                        <button id="btn-custom-prompt-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Aceptar</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Modal Gestión de Pin -->
             <div id="modal-pin-config" class="modal-overlay hidden">
                 <div class="modal-content" style="max-width: 350px;">
@@ -265,6 +223,48 @@
 
                     <div class="modal-actions" style="margin-top:1.5rem; justify-content:center;">
                         <button id="btn-pin-close" class="btn-ghost">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Alertas del Sistema (Custom Alert) -->
+            <div id="modal-custom-alert" class="modal-overlay modal-system hidden" style="z-index: 100000 !important;">
+                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+                    <h2 id="custom-alert-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                        <i class="ri-error-warning-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Aviso
+                    </h2>
+                    <p id="custom-alert-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
+                    <div class="modal-actions" style="justify-content: center; gap: 0;">
+                        <button id="btn-custom-alert-ok" class="btn-primary" style="padding: 0.6rem 2rem; border-radius: 8px;">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Confirmaciones del Sistema (Custom Confirm) -->
+            <div id="modal-custom-confirm" class="modal-overlay modal-system hidden" style="z-index: 100000 !important;">
+                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+                    <h2 id="custom-confirm-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                        <i class="ri-question-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Confirmación
+                    </h2>
+                    <p id="custom-confirm-message" style="color:var(--text-main); margin-bottom:1.5rem; font-size:0.95rem; line-height:1.4; text-align: center;"></p>
+                    <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
+                        <button id="btn-custom-confirm-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
+                        <button id="btn-custom-confirm-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Fusionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Inputs/Prompts del Sistema (Custom Prompt) -->
+            <div id="modal-custom-prompt" class="modal-overlay modal-system hidden" style="z-index: 100000 !important;">
+                <div class="modal-content glass" style="max-width: 420px; text-align: center;">
+                    <h2 id="custom-prompt-title" style="color:var(--primary); margin-bottom: 0.8rem; font-size:1.3rem;">
+                        <i class="ri-edit-line" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.5rem;"></i>Entrada de Datos
+                    </h2>
+                    <p id="custom-prompt-message" style="color:var(--text-main); margin-bottom:1rem; font-size:0.95rem; line-height:1.4; text-align: left;"></p>
+                    <input type="text" id="custom-prompt-input" class="input-control" style="margin-bottom:1.5rem; font-size:0.95rem; background:rgba(0,0,0,0.5); border:1px solid var(--border-color); color:white; padding: 0.6rem;" autocomplete="off">
+                    <div class="modal-actions" style="justify-content: center; gap: 1rem; display: flex; width: 100%;">
+                        <button id="btn-custom-prompt-cancel" class="btn-primary" style="background:var(--bg-dark); border:1px solid var(--border-color); color:white; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancelar</button>
+                        <button id="btn-custom-prompt-ok" class="btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Aceptar</button>
                     </div>
                 </div>
             </div>
